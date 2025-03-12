@@ -13,6 +13,7 @@ class dummy_vars{
         double* values;
         double* weights;
         
+        double max_linspace;
     public:
         dummy_vars();
         dummy_vars(int);
@@ -22,6 +23,7 @@ class dummy_vars{
         double get_value(int);
         double get_weight(int);
         int get_length();
+        double get_max_linspace();
         
         void set_value(int, double);
         void set_weight(int, double);
@@ -55,7 +57,6 @@ class linspace_and_gl : public dummy_vars{
         linspace_and_gl(double, double, int, int);
         linspace_and_gl(linspace_and_gl*);
             
-        double get_max_linspace();
         int get_num_lin();
         int get_num_gl();
 };
@@ -64,6 +65,26 @@ class linspace_for_trap : public linspace_and_gl{
     public:
         linspace_for_trap(double, double, int);
         linspace_for_trap(linspace_for_trap*);
+};
+
+class gel_linspace_gl : public dummy_vars{
+    protected:
+        const int default_N_gel = 10;
+        const int default_N_gl = 5;
+        const double max_lin_sm = 20.;
+        
+        int num_gel, num_lin, num_gl;
+        
+    public:
+        gel_linspace_gl(double, double, int);
+        gel_linspace_gl(gel_linspace_gl*);
+        
+        int get_num_gel();
+        int get_num_lin();
+        int get_num_gl();
+        double get_min_linspace();
+        double get_delta_linspace();
+    
 };
 
 class gel_inner_integral : public dummy_vars{

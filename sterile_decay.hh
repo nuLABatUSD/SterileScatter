@@ -14,6 +14,7 @@ class sterile_decay : public ODESolve<freqs_ntT>{
         
     public:
         sterile_decay(double, double, double, dummy_vars*);
+        sterile_decay(double, double, double, double, int);
         ~sterile_decay();
 
         void f(double, freqs_ntT*, freqs_ntT*);

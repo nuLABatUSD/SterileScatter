@@ -18,6 +18,7 @@ dummy_vars::dummy_vars(int num){
     N = num;
     values = new double[N]();
     weights = new double[N]();
+    max_linspace = 0.;
 }
 
 dummy_vars::dummy_vars(dummy_vars* copy_me)
@@ -25,6 +26,7 @@ dummy_vars::dummy_vars(dummy_vars* copy_me)
     N = copy_me->get_length();
     values = new double[N]();
     weights = new double[N]();
+    max_linspace = copy_me->get_max_linspace();
 
     for(int i = 0; i<N; i++)
         {
@@ -48,6 +50,9 @@ double dummy_vars::get_weight(int i)
 int dummy_vars::get_length(){
     return N;
 }
+
+double dummy_vars::get_max_linspace()
+{   return max_linspace;  }
 
 void dummy_vars::set_value(int i, double v)
 {values[i] = v;}
@@ -238,6 +243,8 @@ linspace_and_gl::linspace_and_gl(double xmin, double xmax, int numlin, int numgl
             weights[num_lin+i] = gl->get_weight(i);
         }
     }
+    
+    max_linspace = values[num_lin-1];
 }
 
 int linspace_and_gl::get_num_lin()
@@ -245,9 +252,6 @@ int linspace_and_gl::get_num_lin()
 
 int linspace_and_gl::get_num_gl()
 {   return num_gl;  }
-
-double linspace_and_gl::get_max_linspace()
-{   return values[num_lin-1]; }
 
 linspace_and_gl::linspace_and_gl(linspace_and_gl* copy_me) : dummy_vars(copy_me)
 {
@@ -260,6 +264,112 @@ linspace_for_trap::linspace_for_trap(double xmin, double xmax, int num) : linspa
 
 linspace_for_trap::linspace_for_trap(linspace_for_trap* copy_me) : linspace_and_gl(copy_me)
 { ;}
+
+gel_linspace_gl::gel_linspace_gl(double lin_sm, double max_lin, int num) : dummy_vars(num){
+    num_gel = default_N_gel;
+    num_gl = default_N_gl;
+    num_lin = num - num_gel - num_gl;
+    
+    if (num_lin <= 0){
+        cout << "gel_linspace_gl called with too few number of points. Number of points must exceed " << default_N_gel + default_N_gl << endl;
+        return;
+    }
+    
+    double min_lin, dx_val, E_low, E_high;
+    int N_LS;
+    if (lin_sm < max_lin_sm)
+    {
+        N_LS = num_lin - 2;
+        min_lin = lin_sm;
+        
+        dx_val = (max_lin - min_lin) / N_LS;
+        E_low = int(min_lin / dx_val) * dx_val;
+        E_high = (int(max_lin / dx_val) + 1) * dx_val;    
+
+    }
+    else
+    {
+        N_LS = num_lin - 3;
+        min_lin = lin_sm;
+        
+        dx_val = (max_lin - min_lin) / N_LS;
+        E_low = int(min_lin / dx_val) * dx_val;
+        E_high = (int(max_lin / dx_val) + 1) * dx_val;
+                
+        if (E_low < max_lin_sm)
+        {
+            N_LS = num_lin - 2;
+            min_lin = lin_sm;
+            
+            dx_val = (max_lin - min_lin) / N_LS;
+            E_low = int(min_lin / dx_val) * dx_val;
+            E_high = (int(max_lin / dx_val) + 1) * dx_val;
+            
+        }
+    }
+    
+    linspace_for_trap* linspace_part = new linspace_for_trap(E_low, E_high, N_LS+2);
+    dummy_vars* ls_dv;
+
+    
+    if (N_LS+2 == num_lin)
+        ls_dv = linspace_part;
+    else
+    {
+        ls_dv = new dummy_vars(num_lin);
+        ls_dv->set_value(0, max_lin_sm);
+        for (int i = 1; i < num_lin; i++)
+            ls_dv->set_value(i, linspace_part->get_value(i-1));
+        ls_dv->set_trap_weights();
+        E_low = max_lin_sm;
+        delete linspace_part;
+    }
+
+    gel_dummy_vars* gel_var = new gel_dummy_vars(num_gel, 0., E_low);
+    gl_dummy_vars* gl_var = new gl_dummy_vars(num_gl, E_high);
+    
+    for(int i = 0; i < num_gel; i++){
+        values[i] = gel_var->get_value(i);
+        weights[i] = gel_var->get_weight(i);
+    }
+    for(int i = num_gel; i < num_gel + num_lin; i++){
+        values[i] = ls_dv->get_value(i - num_gel);
+        weights[i] = ls_dv->get_weight(i - num_gel);
+    }
+    
+    max_linspace = E_high;
+    
+    for(int i = num_gel + num_lin; i < num; i++){
+        values[i] = gl_var->get_value(i - num_gel - num_lin);
+        weights[i] = gl_var->get_weight(i - num_gel - num_lin);
+    }
+    
+    delete ls_dv;
+    delete gel_var;
+    delete gl_var;    
+}
+
+gel_linspace_gl::gel_linspace_gl(gel_linspace_gl* copy_me) : dummy_vars(copy_me){
+    num_gel = copy_me->get_num_gel();
+    num_lin = copy_me->get_num_lin();
+    num_gl = copy_me->get_num_gl();
+}
+
+int gel_linspace_gl::get_num_gel()
+{   return num_gel;  }
+
+int gel_linspace_gl::get_num_lin()
+{   return num_lin;  }
+
+int gel_linspace_gl::get_num_gl()
+{   return num_gl;  }
+
+double gel_linspace_gl::get_min_linspace()
+{   return values[num_gel];  }
+
+double gel_linspace_gl::get_delta_linspace()
+{   return values[num_gel+1] - values[num_gel];  }
+
 
 gel_inner_integral::gel_inner_integral(dummy_vars* eps, double xmax, int Ngel, int Nb) : dummy_vars() {
     gel_dummy_vars* gel = new gel_dummy_vars(Ngel, 0., 1.);

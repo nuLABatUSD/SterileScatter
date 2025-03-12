@@ -2,6 +2,7 @@
 #define __STERILE_HH__
 
 #include "universe.hh"
+#include "dummy_dep_vars.hh"
 
 const double sigma_delta_boxcar = 0.05;
 
@@ -15,6 +16,8 @@ class sterile : public particle{
         
         double rate[5];
         
+        double E_low, E_high;
+        
     public:
         sterile(double, double);
         
@@ -23,6 +26,12 @@ class sterile : public particle{
         double get_lifetime_s();
         
         void calc_rates();
+        void calculate_min_max_energy();
+        
+        double get_E_low();
+        double get_E_high();
+        
+        gel_linspace_gl* new_eps_bins(double, double, int);
         
         double get_decay_type_one(double, double, double);
         double get_decay_type_two(double, double);

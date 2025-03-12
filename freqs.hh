@@ -31,8 +31,18 @@ class freqs_ntT : public dep_vars{
         void set_f_value(int, int, double);
         void set_neutrino_distribution(int, dep_vars*);
         
+        void interpolated_f_values(double, double*);
+        void interpolated_f_values(double, int, double*);
+        
+        double interpolated_f_value(double);
+        double interpolated_f_value(double, int);
+        
         void neutrino_energy_and_pressure(double, double*, double*);
         double neutrino_energy(double);
 };
 
+double fifth_order_fit(double, double*, double*);
+double interpolate_log_fifth(double, double*, double*);
+double linear(double, double, double, double, double);
+double interpolate_log_linear(double, double, double, double, double);
 #endif

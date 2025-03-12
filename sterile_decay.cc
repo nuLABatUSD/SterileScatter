@@ -23,6 +23,27 @@ sterile_decay::sterile_decay(double ms, double theta, double T0, dummy_vars* e) 
     std::cout << "m_s = " << ms << "MeV, lifetime (in seconds) = " << nu_s->get_lifetime_s() << std::endl;
 }
 
+sterile_decay::sterile_decay(double ms, double theta, double a0, double af, int N) : ODESolve(){
+    thermal = new universe(false);
+    nu_s = new sterile(ms, theta);
+
+    std::cout << "E_low = " << nu_s->get_E_low() << ", E_high = " << nu_s->get_E_high() << std::endl;
+    eps = nu_s->new_eps_bins(a0, af, N);
+    
+    double T0 = 1./a0;
+
+    double n0 = 0.174 * 3 * _zeta_3_ / 2. / _PI_ / _PI_ * pow(T0, 3);
+    
+    x_value = 1./T0;
+    dx_value = 0.001 * x_value;
+    
+    y_values = new freqs_ntT(eps, n0, 0., T0, true);
+    
+    std::cout << "m_s = " << ms << "MeV, lifetime (in seconds) = " << nu_s->get_lifetime_s() << std::endl;
+    
+    eps->print_all();
+}
+
 sterile_decay::~sterile_decay()
 {   delete eps;
     delete thermal;

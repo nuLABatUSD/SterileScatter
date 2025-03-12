@@ -3,6 +3,7 @@
 
 #include "sterile.hh"
 #include "constants.hh"
+#include "dummy_dep_vars.hh"
 
 sterile::sterile(double m_s, double theta) : particle(m_s){
     sin2_2th = pow(sin(theta), 2);
@@ -21,6 +22,8 @@ sterile::sterile(double m_s, double theta) : particle(m_s){
         
     lifetime_MeV = 1./decay_rate;
     lifetime_s = lifetime_MeV * _hbar_;
+    
+    calculate_min_max_energy();
 }
 
 double sterile::get_rate()
@@ -223,6 +226,36 @@ void sterile::compute_full_term(dummy_vars* energies_cm, double temp_cm, double 
         p_all[i]->multiply_by(coeff);
 }
 
+void sterile::calculate_min_max_energy(){
+    double waste, gamma_pion_e, pion_speed_e;
+    
+    compute_kinetics(m, _charged_pion_mass_, _electron_mass_, &gamma_pion_e, &pion_speed_e, &waste);
+    
+    E_high = m / 2. * 1.05;
+    
+    E_low = get_monoenergy(m, 0., _neutral_pion_mass_);
+    
+    double neutrino_energy_pion = get_monoenergy(_charged_pion_mass_, 0., _muon_mass_);
+    double min_energy_e = gamma_pion_e * neutrino_energy_pion * (1. - pion_speed_e);
+    
+    if(m > _charged_pion_mass_ + _electron_mass_ && min_energy_e < E_low)
+        E_low = min_energy_e;
+        
+    E_low *= 0.95;
+}
+
+double sterile::get_E_low()
+{   return E_low;  }
+
+double sterile::get_E_high()
+{   return E_high;  }
+
+gel_linspace_gl* sterile::new_eps_bins(double a_start, double a_end, int N){
+    gel_linspace_gl* result = new gel_linspace_gl(a_start * E_low, a_end * E_high, N);
+    
+    return result;
+}
+
 
 double get_monoenergy(double m0, double m1, double m2){
     return (pow(m0,2) + pow(m1,2) - pow(m2,2)) / (2 * m0);
@@ -268,9 +301,6 @@ double type_four_integrand(double energy, double muon_energy){
         return 0;
     }
 }
-
-
-
 
 
 double sterile::energy(double T)

@@ -112,3 +112,44 @@ void freqs_ntT::set_neutrino_distribution(int type, dep_vars* f){
     for(int i = 0; i < num_bins; i++)
         set_f_value(i, type, f->get_value(i));
 }
+
+
+double fifth_order_fit(double x, double* x_vals, double* y_vals){
+    double fit = 0;
+    double Lj;
+
+    for(int j=0; j<5; j++){
+        Lj = 1.0;
+        for(int i=0; i<5; i++){
+            if(i != j){
+                Lj *= (x - x_vals[i]) / (x_vals[j] - x_vals[i]);
+            }
+        }
+        fit += y_vals[j] * Lj;
+    }
+    return fit;
+}
+
+double interpolate_log_fifth(double x, double* x_vals, double* y_vals){
+    double y_temp;
+
+    double* y_log = new double[5]();
+    for(int j=0; j<5; j++)
+        y_log[j] = log(y_vals[j]);
+    
+    y_temp = fifth_order_fit(x, x_vals, y_log);
+    
+    delete[] y_log;
+    return exp(y_temp);
+}
+
+double linear(double x, double x1, double x2, double y1, double y2){
+    if(x2-x1==0){std::cout << "warning: attempting to divide by 0**" << x << std::endl;}
+    double slope = (y2-y1)/(x2-x1);
+    return slope * (x-x2) + y2;
+}
+
+double interpolate_log_linear(double x, double x_val1, double x_val2, double y_val1, double y_val2){
+    double y_temp = linear(x, x_val1, x_val2, log(y_val1), log(y_val2));
+    return exp(y_temp);
+}
