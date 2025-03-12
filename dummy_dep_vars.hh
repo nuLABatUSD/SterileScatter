@@ -14,6 +14,7 @@ class dummy_vars{
         double* weights;
         
     public:
+        dummy_vars();
         dummy_vars(int);
         dummy_vars(dummy_vars*);
         ~dummy_vars();
@@ -26,6 +27,8 @@ class dummy_vars{
         void set_weight(int, double);
         
         void set_trap_weights();
+        
+        int bin_below(double);
         
         double integrate(dep_vars*);
         
@@ -63,6 +66,16 @@ class linspace_for_trap : public linspace_and_gl{
         linspace_for_trap(linspace_for_trap*);
 };
 
+class gel_inner_integral : public dummy_vars{
+    protected:
+        int N_gel;
+        int N_bins_partition;
+        
+    public:
+        gel_inner_integral(dummy_vars* eps, double xmax, int Ngel = 5, int Nb = 10);
+};
+
+
 class dep_vars{
     protected:
         int N;
@@ -76,6 +89,8 @@ class dep_vars{
         
         double get_value(int);
         int get_length();
+        
+        bool isnan();
         
         void set_value(int, double);
         

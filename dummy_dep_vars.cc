@@ -11,6 +11,9 @@ using std::endl;
 using std::ostream;
 
 //dummy_vars
+dummy_vars::dummy_vars()
+{   N = -1; }
+
 dummy_vars::dummy_vars(int num){
     N = num;
     values = new double[N]();
@@ -58,6 +61,36 @@ void dummy_vars::set_trap_weights(){
     for(int i=1; i<N-1; i++){
        weights[i] = 0.5 * (values[i+1] - values[i-1]);
    }
+}
+
+int dummy_vars::bin_below(double x){
+    if(N < 2)
+        return N;
+    int guess = (int) ( (x - values[0]) / ((values[N-1] - values[0]) / (N-1)) );
+        
+    if (guess >= N-1){
+        if (values[N-1] <= x)
+            return N-1;
+        guess = N-2;
+    }
+    else if( values[guess] <= x && x < values[guess+1])
+        return guess;
+        
+    int pm = 1;
+    if(values[guess] > x)
+        pm = -1;
+        
+    int g;
+    for(int i = 0; i < N; i++){
+        g = guess + pm * i;
+        if (g == 0 || g == N-1)
+            return g;
+            
+        if (values[g] <= x && x < values[g+1])
+            return g;
+    }
+    return g;
+    
 }
 
 double dummy_vars::integrate(dep_vars* fvals){
@@ -228,6 +261,38 @@ linspace_for_trap::linspace_for_trap(double xmin, double xmax, int num) : linspa
 linspace_for_trap::linspace_for_trap(linspace_for_trap* copy_me) : linspace_and_gl(copy_me)
 { ;}
 
+gel_inner_integral::gel_inner_integral(dummy_vars* eps, double xmax, int Ngel, int Nb) : dummy_vars() {
+    gel_dummy_vars* gel = new gel_dummy_vars(Ngel, 0., 1.);
+    if (gel->get_weight(0) == 0){
+        cout << "gel_inner_integral failed to create Gauss-Legendre dummy_vars with N = " << N << endl;
+        delete gel;
+        return;
+    }
+    delete gel;
+    
+    int ind = eps->bin_below(xmax);
+    
+    int Ndv = ind / Nb;
+    if (ind % Nb >= Nb / 2)
+        Ndv++;
+        
+    N = Ndv * Ngel;
+    values = new double[N]();
+    weights = new double[N]();
+    
+    for(int i = 0; i < Ndv; i++){
+        if(i < Ndv - 1)
+            gel = new gel_dummy_vars(Ngel, eps->get_value(i*Ngel), eps->get_value((i+1)*Ngel));
+        else
+            gel = new gel_dummy_vars(Ngel, eps->get_value(i*Ngel), xmax);
+        for(int j = 0; j < Ngel; j++){
+            values[i*Ngel + j] = gel->get_value(j);
+            weights[i*Ngel + j] = gel->get_weight(j);
+        }
+        delete gel;
+    }
+}
+
 dep_vars::dep_vars(int size)
 {
     N = size;
@@ -295,6 +360,15 @@ void dep_vars::add_to(double c, dep_vars* z)
 {
     for (int i = 0; i < N; ++i)
         values[i] += c * z -> get_value(i);
+}
+
+bool dep_vars::isnan(){
+    for(int i = 0; i < N; i++)
+        if(std::isnan(values[i])){
+            cout << "ERROR: dep_vars object is nan at index " << i << endl;
+            return true;
+        }
+    return false;
 }
 
 void dep_vars::print_all()

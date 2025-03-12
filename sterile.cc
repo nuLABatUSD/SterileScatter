@@ -194,12 +194,12 @@ void sterile::compute_dPdtdE(dummy_vars* energies_cm, double temp_cm, dep_vars**
             d4_4 = rate[4] * get_decay_type_four(energy, _muon_mass_);
         }
         
-        p_all[0]->set_value(i, d1 + d2 + d3_4 + d4_3 + d4_4);
-        p_all[1]->set_value(i, d3_4 + d4_3 + d4_4);
-        p_all[2]->set_value(i, d1 + d2 + d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
-        p_all[3]->set_value(i, d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
-        p_all[4]->set_value(i, d1 + d2);
-        p_all[5]->set_value(i, 0);
+        p_all[NU_E]->set_value(i, d1 + d2 + d3_4 + d4_3 + d4_4);
+        p_all[NUBAR_E]->set_value(i, d3_4 + d4_3 + d4_4);
+        p_all[NU_MU]->set_value(i, d1 + d2 + d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
+        p_all[NUBAR_MU]->set_value(i, d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
+        p_all[NU_TAU]->set_value(i, d1 + d2);
+        p_all[NUBAR_TAU]->set_value(i, 0);
                     
     }
     
@@ -209,11 +209,11 @@ void sterile::compute_dPdtdE(dummy_vars* energies_cm, double temp_cm, dep_vars**
     return;
 }
 
-void sterile::compute_full_term(dummy_vars* energies_cm, double temp_cm, dep_vars** p_all)
+void sterile::compute_full_term(dummy_vars* energies_cm, double temp_cm, double n_s, double dtda, dep_vars** p_all)
 {
     compute_dPdtdE(energies_cm, temp_cm, p_all);
     
-    double c = 2 * _PI_ * _PI_ / (temp_cm * temp_cm);
+    double c = 2 * _PI_ * _PI_ / (temp_cm * temp_cm) * n_s * dtda;
     dep_vars* coeff = new dep_vars(energies_cm->get_length());
     coeff->set_value(0, 0.);
     for(int i = 1; i < energies_cm->get_length(); i++)

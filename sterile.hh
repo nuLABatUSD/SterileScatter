@@ -30,7 +30,7 @@ class sterile : public particle{
         double get_decay_type_four(double, double);
         
         void compute_dPdtdE(dummy_vars*, double, dep_vars**);
-        void compute_full_term(dummy_vars*, double, dep_vars**);
+        void compute_full_term(dummy_vars*, double, double, double, dep_vars**);
         
         double min_low();
         
@@ -40,6 +40,7 @@ class sterile : public particle{
         double dP_dT(double);
        
 };
+
 
 void compute_kinetics(double, double, double, double*, double*, double*);
 double get_monoenergy(double, double, double);
