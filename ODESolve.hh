@@ -282,6 +282,9 @@ bool ODESolve<dep>::step_accept(dep* y, dep* y5, dep* y4, double dx, double* dx_
             }
             deriv_error_file.close();
             
+            delete y_temp;
+            delete f_temp;
+            
         }
         total_ODE_rejected_steps++;
         return false;
@@ -420,7 +423,7 @@ bool ODESolve<dep>::ODEOneRun(int N_step, int dN, double x_final, const std::str
         print_state();
         cout << endl << "Time elapsed: "
          << duration.count()/1000. << " seconds" << endl;
-        cout << "steps rejected / total steps = " << total_ODE_rejected_steps << " / " << total_ODE_steps << " (" << (100 * total_ODE_rejected_steps) / total_ODE_steps << "%)" << endl;
+        cout << "steps rejected / total steps = " << total_ODE_rejected_steps << " / " << total_ODE_steps << " (" << (100 * total_ODE_rejected_steps) / (total_ODE_rejected_steps+total_ODE_steps) << "%)" << endl;
 
     }
 

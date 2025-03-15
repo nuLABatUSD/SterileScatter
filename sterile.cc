@@ -5,7 +5,8 @@
 #include "constants.hh"
 #include "dummy_dep_vars.hh"
 
-sterile::sterile(double m_s, double theta) : particle(m_s){
+sterile::sterile(double m_s, double th) : particle(m_s){
+    theta = th;
     sin2_2th = pow(sin(theta), 2);
     
     calc_rates();
@@ -24,7 +25,14 @@ sterile::sterile(double m_s, double theta) : particle(m_s){
     lifetime_s = lifetime_MeV * _hbar_;
     
     calculate_min_max_energy();
+    decay_on = true;
 }
+
+sterile::sterile(sterile* copy_me) : sterile(copy_me->mass(), copy_me->get_theta())
+{   decay_on = copy_me->is_decay_on();  }
+
+double sterile::get_theta()
+{   return theta;  }
 
 double sterile::get_rate()
 {   return decay_rate;  }
@@ -34,6 +42,12 @@ double sterile::get_lifetime()
 
 double sterile::get_lifetime_s()
 {   return lifetime_s;  }
+
+bool sterile::is_decay_on()
+{   return decay_on;  }
+
+void sterile::turn_decay_off()
+{   decay_on = false;  }
 
 void sterile::calc_rates(){
     rate[1] = 3 * _fine_structure_ * pow(_GF_,2) * pow(m,5) * sin2_2th / (512 * pow(_PI_,4));
@@ -157,6 +171,10 @@ double sterile::get_decay_type_four(double energy, double pion_spectator_mass)
     }
 
     double integral = x->integrate(four_vals);
+    
+    delete four_vals;
+    delete x;
+    
     return integral / (2 * gamma_pion * v_pion * p_muon);
 }
 
@@ -214,16 +232,28 @@ void sterile::compute_dPdtdE(dummy_vars* energies_cm, double temp_cm, dep_vars**
 
 void sterile::compute_full_term(dummy_vars* energies_cm, double temp_cm, double n_s, double dtda, dep_vars** p_all)
 {
+    if (!decay_on){
+        for(int j = 0; j < 6; j++)
+            p_all[j]->zeros();
+        return;
+    }
+
     compute_dPdtdE(energies_cm, temp_cm, p_all);
     
     double c = 2 * _PI_ * _PI_ / (temp_cm * temp_cm) * n_s * dtda;
     dep_vars* coeff = new dep_vars(energies_cm->get_length());
     coeff->set_value(0, 0.);
-    for(int i = 1; i < energies_cm->get_length(); i++)
-        coeff->set_value(i, c / pow(energies_cm->get_value(i), 2));
+    for(int i = 0; i < energies_cm->get_length(); i++){
+        if (energies_cm->get_value(i) == 0)
+            coeff->set_value(i, 0.);
+        else
+            coeff->set_value(i, c / pow(energies_cm->get_value(i), 2));
+    }
         
     for(int i = 0; i < 6; i++)
         p_all[i]->multiply_by(coeff);
+        
+    delete coeff;
 }
 
 void sterile::calculate_min_max_energy(){

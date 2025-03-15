@@ -33,8 +33,12 @@ class dummy_vars{
         int bin_below(double);
         
         double integrate(dep_vars*);
+        double partial_integrate_end(int, dep_vars*);
+        double integrate_pow(dep_vars*, double);
+        double partial_integrate_pow_end(int, dep_vars*, double);
         
         void print_all();
+        void print_csv(ostream&);
 };
 
 class gl_dummy_vars : public dummy_vars{

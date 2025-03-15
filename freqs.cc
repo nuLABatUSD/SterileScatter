@@ -41,6 +41,12 @@ int freqs_ntT::get_num_bins()
 dummy_vars* freqs_ntT::get_eps()
 {   return eps; }
 
+void freqs_ntT::new_eps(dummy_vars* e)
+{
+    delete eps;
+    eps = new dummy_vars(e);
+}
+
 double freqs_ntT::get_sterile_density()
 {   return values[6 * num_bins]; }
 
@@ -56,6 +62,9 @@ double freqs_ntT::get_Temp()
 double freqs_ntT::get_f_value(int bin, int type)
 {   return values[type * num_bins + bin];  }
 
+double freqs_ntT::get_eps_value(int i)
+{   return eps->get_value(i);  }
+
 void freqs_ntT::set_f_value(int bin, int type, double val)
 {   values[type * num_bins + bin] = val; }
 
@@ -67,6 +76,10 @@ void freqs_ntT::set_time(double t0)
 
 void freqs_ntT::set_Temp(double T0)
 {   values[6 * num_bins + 2] = T0; }
+
+void freqs_ntT::print_eps_file(ostream& os)
+{   eps->print_csv(os);  
+    os << std::endl; }
 
 double freqs_ntT::neutrino_energy(double a)
 {  
@@ -112,6 +125,44 @@ void freqs_ntT::set_neutrino_distribution(int type, dep_vars* f){
     for(int i = 0; i < num_bins; i++)
         set_f_value(i, type, f->get_value(i));
 }
+
+void freqs_ntT::get_neutrino_distribution(int type, dep_vars* f_out){
+    for(int i = 0; i < num_bins; i++)
+        f_out->set_value(i, get_f_value(i, type));
+}
+
+void freqs_ntT::interpolated_f_values(double x, double* results){
+    interpolated_f_values(x, eps->bin_below(x), results);
+}
+
+void freqs_ntT::interpolated_f_values(double x, int bin, double* results)
+{
+    if(x < eps->get_max_linspace()){
+        int ind = std::max(0, bin-2);
+        ind = std::min(num_bins-1-4, ind);
+        
+        double x_vals[5];
+        double y_vals[5];
+        
+        for(int i = 0; i < 5; i++)
+            x_vals[i] = eps->get_value(ind+i);
+        
+        for(int j = 0; j < 6; j++){
+            for(int i = 0; i < 5; i++)
+                y_vals[i] = get_f_value(ind+i, j);
+            results[j] = interpolate_log_fifth(x, x_vals, y_vals);
+        }    
+    }
+    else{
+        for(int j = 0; j < 6; j++){
+            if(bin == num_bins-1)
+                results[j] = interpolate_log_linear(x, eps->get_value(num_bins-2), eps->get_value(num_bins-1), get_f_value(num_bins-2, j), get_f_value(num_bins-1, j));
+            else
+                results[j] = interpolate_log_linear(x, eps->get_value(bin), eps->get_value(bin+1), get_f_value(bin, j), get_f_value(bin+1, j));
+        }
+    }
+}
+
 
 
 double fifth_order_fit(double x, double* x_vals, double* y_vals){

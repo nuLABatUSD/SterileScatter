@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <iomanip>
+#include <fstream>
 
 #include "dummy_dep_vars.hh"
 #include "gl_vals.hh"
@@ -71,6 +72,10 @@ void dummy_vars::set_trap_weights(){
 int dummy_vars::bin_below(double x){
     if(N < 2)
         return N;
+        
+    if(values[N-1] <= x)
+        return N-1;
+        
     int guess = (int) ( (x - values[0]) / ((values[N-1] - values[0]) / (N-1)) );
         
     if (guess >= N-1){
@@ -106,11 +111,41 @@ double dummy_vars::integrate(dep_vars* fvals){
     return result;    
 }
 
+double dummy_vars::partial_integrate_end(int start_bin, dep_vars* fvals){
+    double result = 0.;
+    for(int i = start_bin; i < N; i++)
+       result += fvals->get_value(i) * weights[i]; 
+    return result;
+}
+
+double dummy_vars::partial_integrate_pow_end(int start_bin, dep_vars* fvals, double n_exp){
+    double result = 0.;
+    for(int i = start_bin; i < N; i++)
+       result += fvals->get_value(i) * weights[i] * pow(values[i], n_exp); 
+    return result;    
+}
+
+double dummy_vars::integrate_pow(dep_vars* fvals, double n_exp)
+{   return partial_integrate_pow_end(0, fvals, n_exp);  }
+
+
 void dummy_vars::print_all(){
     for(int i =0; i<N; i++){
         cout << values[i] << endl;
     }
 }
+
+void dummy_vars::print_csv(ostream& os)
+{
+    for (int i = 0; i < N-1; i++)
+        os << values[i] << ", ";
+    os << values[N-1] << endl;
+    
+    for(int i = 0; i < N-1; i++)
+        os << weights[i] << ", ";
+    os << weights[N-1];
+}
+
 
 gl_dummy_vars::gl_dummy_vars(int num_gl) : gl_dummy_vars(num_gl, 0.)
 { ;

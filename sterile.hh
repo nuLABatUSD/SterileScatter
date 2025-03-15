@@ -8,6 +8,7 @@ const double sigma_delta_boxcar = 0.05;
 
 class sterile : public particle{
     protected:
+        double theta;
         double sin2_2th;
         
         double decay_rate;
@@ -17,13 +18,19 @@ class sterile : public particle{
         double rate[5];
         
         double E_low, E_high;
-        
+        bool decay_on;
     public:
         sterile(double, double);
+        sterile(sterile*);
+        
+        double get_theta();
         
         double get_rate();
         double get_lifetime();
         double get_lifetime_s();
+        
+        bool is_decay_on();
+        void turn_decay_off();
         
         void calc_rates();
         void calculate_min_max_energy();
