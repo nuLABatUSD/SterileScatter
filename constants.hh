@@ -17,3 +17,10 @@ const double _gwd_ = 10.75;
 const double _gsdec_ = 61.75;
 const double _zeta_3_ = 1.2020569031595942853;
 const double _hbar_ = 6.582119569e-22;
+
+#define NU_E 0
+#define NUBAR_E 1
+#define NU_MU 2
+#define NUBAR_MU 3
+#define NU_TAU 4
+#define NUBAR_TAU 5

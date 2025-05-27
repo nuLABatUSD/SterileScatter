@@ -2,11 +2,13 @@
 #define __STERILE_HH__
 
 #include "universe.hh"
+#include "dummy_dep_vars.hh"
 
 const double sigma_delta_boxcar = 0.05;
 
 class sterile : public particle{
     protected:
+        double theta;
         double sin2_2th;
         
         double decay_rate;
@@ -15,14 +17,28 @@ class sterile : public particle{
         
         double rate[5];
         
+        double E_low, E_high;
+        bool decay_on;
     public:
         sterile(double, double);
+        sterile(sterile*);
+        
+        double get_theta();
         
         double get_rate();
         double get_lifetime();
         double get_lifetime_s();
         
+        bool is_decay_on();
+        void turn_decay_off();
+        
         void calc_rates();
+        void calculate_min_max_energy();
+        
+        double get_E_low();
+        double get_E_high();
+        
+        gel_linspace_gl* new_eps_bins(double, double, int);
         
         double get_decay_type_one(double, double, double);
         double get_decay_type_two(double, double);
@@ -30,7 +46,7 @@ class sterile : public particle{
         double get_decay_type_four(double, double);
         
         void compute_dPdtdE(dummy_vars*, double, dep_vars**);
-        void compute_full_term(dummy_vars*, double, dep_vars**);
+        void compute_full_term(dummy_vars*, double, double, double, dep_vars**);
         
         double min_low();
         
@@ -40,6 +56,7 @@ class sterile : public particle{
         double dP_dT(double);
        
 };
+
 
 void compute_kinetics(double, double, double, double*, double*, double*);
 double get_monoenergy(double, double, double);

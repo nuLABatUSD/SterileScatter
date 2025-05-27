@@ -16,6 +16,7 @@ class universe{
         
         void energy_and_pressure(double, double*, double*);
         void energy_pressure_and_derivs(double, double*, double*, double*, double*);
+        void energy_entropy_and_derivs(double, double*, double*, double*);
 };
 
 class particle{

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <iomanip>
+#include <fstream>
 
 #include "dummy_dep_vars.hh"
 #include "gl_vals.hh"
@@ -11,10 +12,14 @@ using std::endl;
 using std::ostream;
 
 //dummy_vars
+dummy_vars::dummy_vars()
+{   N = -1; }
+
 dummy_vars::dummy_vars(int num){
     N = num;
     values = new double[N]();
     weights = new double[N]();
+    max_linspace = 0.;
 }
 
 dummy_vars::dummy_vars(dummy_vars* copy_me)
@@ -22,6 +27,7 @@ dummy_vars::dummy_vars(dummy_vars* copy_me)
     N = copy_me->get_length();
     values = new double[N]();
     weights = new double[N]();
+    max_linspace = copy_me->get_max_linspace();
 
     for(int i = 0; i<N; i++)
         {
@@ -46,6 +52,9 @@ int dummy_vars::get_length(){
     return N;
 }
 
+double dummy_vars::get_max_linspace()
+{   return max_linspace;  }
+
 void dummy_vars::set_value(int i, double v)
 {values[i] = v;}
 
@@ -60,6 +69,40 @@ void dummy_vars::set_trap_weights(){
    }
 }
 
+int dummy_vars::bin_below(double x){
+    if(N < 2)
+        return N;
+        
+    if(values[N-1] <= x)
+        return N-1;
+        
+    int guess = (int) ( (x - values[0]) / ((values[N-1] - values[0]) / (N-1)) );
+        
+    if (guess >= N-1){
+        if (values[N-1] <= x)
+            return N-1;
+        guess = N-2;
+    }
+    else if( values[guess] <= x && x < values[guess+1])
+        return guess;
+        
+    int pm = 1;
+    if(values[guess] > x)
+        pm = -1;
+        
+    int g;
+    for(int i = 0; i < N; i++){
+        g = guess + pm * i;
+        if (g == 0 || g == N-1)
+            return g;
+            
+        if (values[g] <= x && x < values[g+1])
+            return g;
+    }
+    return g;
+    
+}
+
 double dummy_vars::integrate(dep_vars* fvals){
     double result = 0;
     for (int i = 0; i<N; i++){
@@ -68,11 +111,41 @@ double dummy_vars::integrate(dep_vars* fvals){
     return result;    
 }
 
+double dummy_vars::partial_integrate_end(int start_bin, dep_vars* fvals){
+    double result = 0.;
+    for(int i = start_bin; i < N; i++)
+       result += fvals->get_value(i) * weights[i]; 
+    return result;
+}
+
+double dummy_vars::partial_integrate_pow_end(int start_bin, dep_vars* fvals, double n_exp){
+    double result = 0.;
+    for(int i = start_bin; i < N; i++)
+       result += fvals->get_value(i) * weights[i] * pow(values[i], n_exp); 
+    return result;    
+}
+
+double dummy_vars::integrate_pow(dep_vars* fvals, double n_exp)
+{   return partial_integrate_pow_end(0, fvals, n_exp);  }
+
+
 void dummy_vars::print_all(){
     for(int i =0; i<N; i++){
         cout << values[i] << endl;
     }
 }
+
+void dummy_vars::print_csv(ostream& os)
+{
+    for (int i = 0; i < N-1; i++)
+        os << values[i] << ", ";
+    os << values[N-1] << endl;
+    
+    for(int i = 0; i < N-1; i++)
+        os << weights[i] << ", ";
+    os << weights[N-1];
+}
+
 
 gl_dummy_vars::gl_dummy_vars(int num_gl) : gl_dummy_vars(num_gl, 0.)
 { ;
@@ -205,6 +278,8 @@ linspace_and_gl::linspace_and_gl(double xmin, double xmax, int numlin, int numgl
             weights[num_lin+i] = gl->get_weight(i);
         }
     }
+    
+    max_linspace = values[num_lin-1];
 }
 
 int linspace_and_gl::get_num_lin()
@@ -212,9 +287,6 @@ int linspace_and_gl::get_num_lin()
 
 int linspace_and_gl::get_num_gl()
 {   return num_gl;  }
-
-double linspace_and_gl::get_max_linspace()
-{   return values[num_lin-1]; }
 
 linspace_and_gl::linspace_and_gl(linspace_and_gl* copy_me) : dummy_vars(copy_me)
 {
@@ -227,6 +299,144 @@ linspace_for_trap::linspace_for_trap(double xmin, double xmax, int num) : linspa
 
 linspace_for_trap::linspace_for_trap(linspace_for_trap* copy_me) : linspace_and_gl(copy_me)
 { ;}
+
+gel_linspace_gl::gel_linspace_gl(double lin_sm, double max_lin, int num) : dummy_vars(num){
+    num_gel = default_N_gel;
+    num_gl = default_N_gl;
+    num_lin = num - num_gel - num_gl;
+    
+    if (num_lin <= 0){
+        cout << "gel_linspace_gl called with too few number of points. Number of points must exceed " << default_N_gel + default_N_gl << endl;
+        return;
+    }
+    
+    double min_lin, dx_val, E_low, E_high;
+    int N_LS;
+    if (lin_sm < max_lin_sm)
+    {
+        N_LS = num_lin - 2;
+        min_lin = lin_sm;
+        
+        dx_val = (max_lin - min_lin) / N_LS;
+        E_low = int(min_lin / dx_val) * dx_val;
+        E_high = (int(max_lin / dx_val) + 1) * dx_val;    
+
+    }
+    else
+    {
+        N_LS = num_lin - 3;
+        min_lin = lin_sm;
+        
+        dx_val = (max_lin - min_lin) / N_LS;
+        E_low = int(min_lin / dx_val) * dx_val;
+        E_high = (int(max_lin / dx_val) + 1) * dx_val;
+                
+        if (E_low < max_lin_sm)
+        {
+            N_LS = num_lin - 2;
+            min_lin = lin_sm;
+            
+            dx_val = (max_lin - min_lin) / N_LS;
+            E_low = int(min_lin / dx_val) * dx_val;
+            E_high = (int(max_lin / dx_val) + 1) * dx_val;
+            
+        }
+    }
+    
+    linspace_for_trap* linspace_part = new linspace_for_trap(E_low, E_high, N_LS+2);
+    dummy_vars* ls_dv;
+
+    
+    if (N_LS+2 == num_lin)
+        ls_dv = linspace_part;
+    else
+    {
+        ls_dv = new dummy_vars(num_lin);
+        ls_dv->set_value(0, max_lin_sm);
+        for (int i = 1; i < num_lin; i++)
+            ls_dv->set_value(i, linspace_part->get_value(i-1));
+        ls_dv->set_trap_weights();
+        E_low = max_lin_sm;
+        delete linspace_part;
+    }
+
+    gel_dummy_vars* gel_var = new gel_dummy_vars(num_gel, 0., E_low);
+    gl_dummy_vars* gl_var = new gl_dummy_vars(num_gl, E_high);
+    
+    for(int i = 0; i < num_gel; i++){
+        values[i] = gel_var->get_value(i);
+        weights[i] = gel_var->get_weight(i);
+    }
+    for(int i = num_gel; i < num_gel + num_lin; i++){
+        values[i] = ls_dv->get_value(i - num_gel);
+        weights[i] = ls_dv->get_weight(i - num_gel);
+    }
+    
+    max_linspace = E_high;
+    
+    for(int i = num_gel + num_lin; i < num; i++){
+        values[i] = gl_var->get_value(i - num_gel - num_lin);
+        weights[i] = gl_var->get_weight(i - num_gel - num_lin);
+    }
+    
+    delete ls_dv;
+    delete gel_var;
+    delete gl_var;    
+}
+
+gel_linspace_gl::gel_linspace_gl(gel_linspace_gl* copy_me) : dummy_vars(copy_me){
+    num_gel = copy_me->get_num_gel();
+    num_lin = copy_me->get_num_lin();
+    num_gl = copy_me->get_num_gl();
+}
+
+int gel_linspace_gl::get_num_gel()
+{   return num_gel;  }
+
+int gel_linspace_gl::get_num_lin()
+{   return num_lin;  }
+
+int gel_linspace_gl::get_num_gl()
+{   return num_gl;  }
+
+double gel_linspace_gl::get_min_linspace()
+{   return values[num_gel];  }
+
+double gel_linspace_gl::get_delta_linspace()
+{   return values[num_gel+1] - values[num_gel];  }
+
+
+gel_inner_integral::gel_inner_integral(dummy_vars* eps, double xmax, int Ngel, int Nb) : dummy_vars() {
+    gel_dummy_vars* gel = new gel_dummy_vars(Ngel, 0., 1.);
+    if (gel->get_weight(0) == 0){
+        cout << "gel_inner_integral failed to create Gauss-Legendre dummy_vars with N = " << N << endl;
+        delete gel;
+        return;
+    }
+    delete gel;
+    
+    int ind = eps->bin_below(xmax);
+    
+    int Ndv = ind / Nb;
+    if (ind % Nb >= Nb / 2)
+        Ndv++;
+        
+    N = Ndv * Ngel;
+    values = new double[N]();
+    weights = new double[N]();
+    
+    for(int i = 0; i < Ndv; i++){
+        if(i < Ndv - 1)
+            gel = new gel_dummy_vars(Ngel, eps->get_value(i*Ngel), eps->get_value((i+1)*Ngel));
+        else
+            gel = new gel_dummy_vars(Ngel, eps->get_value(i*Ngel), xmax);
+        for(int j = 0; j < Ngel; j++){
+            values[i*Ngel + j] = gel->get_value(j);
+            weights[i*Ngel + j] = gel->get_weight(j);
+        }
+        delete gel;
+    }
+}
 
 dep_vars::dep_vars(int size)
 {
@@ -295,6 +505,15 @@ void dep_vars::add_to(double c, dep_vars* z)
 {
     for (int i = 0; i < N; ++i)
         values[i] += c * z -> get_value(i);
+}
+
+bool dep_vars::isnan(){
+    for(int i = 0; i < N; i++)
+        if(std::isnan(values[i])){
+            cout << "ERROR: dep_vars object is nan at index " << i << endl;
+            return true;
+        }
+    return false;
 }
 
 void dep_vars::print_all()

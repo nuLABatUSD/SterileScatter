@@ -3,8 +3,10 @@
 
 #include "sterile.hh"
 #include "constants.hh"
+#include "dummy_dep_vars.hh"
 
-sterile::sterile(double m_s, double theta) : particle(m_s){
+sterile::sterile(double m_s, double th) : particle(m_s){
+    theta = th;
     sin2_2th = pow(sin(theta), 2);
     
     calc_rates();
@@ -21,7 +23,16 @@ sterile::sterile(double m_s, double theta) : particle(m_s){
         
     lifetime_MeV = 1./decay_rate;
     lifetime_s = lifetime_MeV * _hbar_;
+    
+    calculate_min_max_energy();
+    decay_on = true;
 }
+
+sterile::sterile(sterile* copy_me) : sterile(copy_me->mass(), copy_me->get_theta())
+{   decay_on = copy_me->is_decay_on();  }
+
+double sterile::get_theta()
+{   return theta;  }
 
 double sterile::get_rate()
 {   return decay_rate;  }
@@ -31,6 +42,12 @@ double sterile::get_lifetime()
 
 double sterile::get_lifetime_s()
 {   return lifetime_s;  }
+
+bool sterile::is_decay_on()
+{   return decay_on;  }
+
+void sterile::turn_decay_off()
+{   decay_on = false;  }
 
 void sterile::calc_rates(){
     rate[1] = 3 * _fine_structure_ * pow(_GF_,2) * pow(m,5) * sin2_2th / (512 * pow(_PI_,4));
@@ -154,6 +171,10 @@ double sterile::get_decay_type_four(double energy, double pion_spectator_mass)
     }
 
     double integral = x->integrate(four_vals);
+    
+    delete four_vals;
+    delete x;
+    
     return integral / (2 * gamma_pion * v_pion * p_muon);
 }
 
@@ -194,12 +215,12 @@ void sterile::compute_dPdtdE(dummy_vars* energies_cm, double temp_cm, dep_vars**
             d4_4 = rate[4] * get_decay_type_four(energy, _muon_mass_);
         }
         
-        p_all[0]->set_value(i, d1 + d2 + d3_4 + d4_3 + d4_4);
-        p_all[1]->set_value(i, d3_4 + d4_3 + d4_4);
-        p_all[2]->set_value(i, d1 + d2 + d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
-        p_all[3]->set_value(i, d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
-        p_all[4]->set_value(i, d1 + d2);
-        p_all[5]->set_value(i, 0);
+        p_all[NU_E]->set_value(i, d1 + d2 + d3_4 + d4_3 + d4_4);
+        p_all[NUBAR_E]->set_value(i, d3_4 + d4_3 + d4_4);
+        p_all[NU_MU]->set_value(i, d1 + d2 + d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
+        p_all[NUBAR_MU]->set_value(i, d3_2 + d3_4 + d4_2 + d4_3 + d4_4);
+        p_all[NU_TAU]->set_value(i, d1 + d2);
+        p_all[NUBAR_TAU]->set_value(i, 0);
                     
     }
     
@@ -209,18 +230,60 @@ void sterile::compute_dPdtdE(dummy_vars* energies_cm, double temp_cm, dep_vars**
     return;
 }
 
-void sterile::compute_full_term(dummy_vars* energies_cm, double temp_cm, dep_vars** p_all)
+void sterile::compute_full_term(dummy_vars* energies_cm, double temp_cm, double n_s, double dtda, dep_vars** p_all)
 {
+    if (!decay_on){
+        for(int j = 0; j < 6; j++)
+            p_all[j]->zeros();
+        return;
+    }
+
     compute_dPdtdE(energies_cm, temp_cm, p_all);
     
-    double c = 2 * _PI_ * _PI_ / (temp_cm * temp_cm);
+    double c = 2 * _PI_ * _PI_ / (temp_cm * temp_cm) * n_s * dtda;
     dep_vars* coeff = new dep_vars(energies_cm->get_length());
     coeff->set_value(0, 0.);
-    for(int i = 1; i < energies_cm->get_length(); i++)
-        coeff->set_value(i, c / pow(energies_cm->get_value(i), 2));
+    for(int i = 0; i < energies_cm->get_length(); i++){
+        if (energies_cm->get_value(i) == 0)
+            coeff->set_value(i, 0.);
+        else
+            coeff->set_value(i, c / pow(energies_cm->get_value(i), 2));
+    }
         
     for(int i = 0; i < 6; i++)
         p_all[i]->multiply_by(coeff);
+        
+    delete coeff;
+}
+
+void sterile::calculate_min_max_energy(){
+    double waste, gamma_pion_e, pion_speed_e;
+    
+    compute_kinetics(m, _charged_pion_mass_, _electron_mass_, &gamma_pion_e, &pion_speed_e, &waste);
+    
+    E_high = m / 2. * 1.05;
+    
+    E_low = get_monoenergy(m, 0., _neutral_pion_mass_);
+    
+    double neutrino_energy_pion = get_monoenergy(_charged_pion_mass_, 0., _muon_mass_);
+    double min_energy_e = gamma_pion_e * neutrino_energy_pion * (1. - pion_speed_e);
+    
+    if(m > _charged_pion_mass_ + _electron_mass_ && min_energy_e < E_low)
+        E_low = min_energy_e;
+        
+    E_low *= 0.95;
+}
+
+double sterile::get_E_low()
+{   return E_low;  }
+
+double sterile::get_E_high()
+{   return E_high;  }
+
+gel_linspace_gl* sterile::new_eps_bins(double a_start, double a_end, int N){
+    gel_linspace_gl* result = new gel_linspace_gl(a_start * E_low, a_end * E_high, N);
+    
+    return result;
 }
 
 
@@ -268,9 +331,6 @@ double type_four_integrand(double energy, double muon_energy){
         return 0;
     }
 }
-
-
-
 
 
 double sterile::energy(double T)

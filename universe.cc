@@ -154,3 +154,25 @@ void universe::energy_pressure_and_derivs(double T, double* rho, double* P, doub
     }
     return;
 }
+
+void universe::energy_entropy_and_derivs(double T, double* rho, double* s, double* dsdT){
+    *rho = 0.;
+    *s = 0.;
+    *dsdT = 0.;
+    
+    double en = 0;
+    double pr = 0;
+    
+    for(int i = 0; i < N_particles; i++){
+        en = thermal_particles[i]->energy(T);
+        pr = thermal_particles[i]->pressure(T);
+        
+        *rho += en;
+        *s += (en + pr) / T;
+        
+        *dsdT += (thermal_particles[i]->drho_dT(T) + thermal_particles[i]->dP_dT(T)) / T;
+        *dsdT += - (en+pr)/T / T;
+    }
+    return;   
+}
+
