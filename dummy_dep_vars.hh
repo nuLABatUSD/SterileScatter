@@ -7,6 +7,7 @@ using std::ostream;
 
 class dep_vars;
 
+// dummy_vars - base class for dummy variables
 class dummy_vars{
     protected:
         int N;
@@ -41,17 +42,21 @@ class dummy_vars{
         void print_csv(ostream&);
 };
 
+// gl_dummy_vars - sets up dummy variables for Gauss-Laguerre (integrating from 0 to inf) 
 class gl_dummy_vars : public dummy_vars{
     public:
         gl_dummy_vars(int);
         gl_dummy_vars(int, double);
 };
 
+// gel_dummy_vars - sets up dummy vars for Gauss-Legendre (integrating from )
+// What is the use for Gauss-Legendre?? 
 class gel_dummy_vars : public dummy_vars{
     public:
         gel_dummy_vars(int, double, double);
 };
 
+// linspace_and_gl -
 class linspace_and_gl : public dummy_vars{
     protected:
         int num_lin;
@@ -65,12 +70,14 @@ class linspace_and_gl : public dummy_vars{
         int get_num_gl();
 };
 
+// linspace_for_trap - sets up dummy vars in linear space for trapezoid rule
 class linspace_for_trap : public linspace_and_gl{
     public:
         linspace_for_trap(double, double, int);
         linspace_for_trap(linspace_for_trap*);
 };
 
+// gel_linspace_gl - 
 class gel_linspace_gl : public dummy_vars{
     protected:
         const int default_N_gel = 10;
@@ -91,6 +98,7 @@ class gel_linspace_gl : public dummy_vars{
     
 };
 
+// gel_inner_integral -
 class gel_inner_integral : public dummy_vars{
     protected:
         int N_gel;
@@ -100,7 +108,7 @@ class gel_inner_integral : public dummy_vars{
         gel_inner_integral(dummy_vars* eps, double xmax, int Ngel = 5, int Nb = 10);
 };
 
-
+// dep_vars - dependent variables containing the values (necessary for integration)
 class dep_vars{
     protected:
         int N;
