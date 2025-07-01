@@ -274,6 +274,40 @@ void sterile::calculate_min_max_energy(){
     E_low *= 0.95;
 }
 
+void sterile::calculate_energies(){
+    // After m_s~250 MeV, the energies from largest to smallest are
+    // [Emin_3, Emin_4, Emax_4, Emax_3, E0_2, E0_1] - the numbers denote the decay type
+    
+    // Decays 1 and 2
+    double E0_1 = m / 2.0;
+    double E0_2 = get_monoenergy(m, 0.0, _neutral_pion_mass_);
+    
+    // Decays 3 and 4
+    double E_nu_prime = get_monoenergy(_charged_pion_mass_,0.0,_muon_mass_);
+    double p_nu_prime = E_nu_prime;
+    
+    // Decay 3
+    double gamma_3, v_3, p_3;
+    compute_kinetics(m, _charged_pion_mass_, _electron_mass_, &gamma_3, &v_3, &p_3);
+    
+    double Emin_3 = gamma_3 * (E_nu_prime - (v_3 * p_nu_prime));
+    double Emax_3 = gamma_3 * (E_nu_prime + (v_3 * p_nu_prime));
+    
+    // Decay 4
+    double gamma_4, v_4, p_4;
+    compute_kinetics(m, _charged_pion_mass_, _muon_mass_, &gamma_4, &v_4, &p_4);
+    
+    double Emin_4 = gamma_4 * (E_nu_prime - (v_4 * p_nu_prime));
+    double Emax_4 = gamma_4 * (E_nu_prime + (v_4 * p_nu_prime));
+    
+    energies[0] = Emin_3;
+    energies[1] = Emin_4;
+    energies[2] = Emax_4;
+    energies[3] = Emax_3;
+    energies[4] = E0_2;
+    energies[5] = E0_1;
+}
+
 double sterile::get_E_low()
 {   return E_low;  }
 
@@ -282,6 +316,11 @@ double sterile::get_E_high()
 
 gel_linspace_gl* sterile::new_eps_bins(double a_start, double a_end, int N){
     gel_linspace_gl* result = new gel_linspace_gl(a_start * E_low, a_end * E_high, N);
+    
+    return result;
+}
+mixed_dummy_vars* sterile::new_eps_bins(double E_start, double a0, double af, double m_s, int N){
+    mixed_dummy_vars* result = new mixed_dummy_vars(E_start, a0, af, m_s, N);
     
     return result;
 }
