@@ -14,11 +14,20 @@ class mixed_dummy_vars : public dummy_vars{
     
     const int def_N_ints = 4; // number of G-Leg + LS intervals
 
+    double Estart;
+    double a0;
+    double af;
+    double ms;
+    int N;
+    
+    double key_energies[6];
     
     public:
-    mixed_dummy_vars(double, double, double, double, int); 
-    // E_start, Tcm_0, Tcm_f, m_s, number of points N
+    mixed_dummy_vars(double, double, double, double, int);// E_start, a_0, a_f, m_s, number of points num
+    mixed_dummy_vars(mixed_dummy_vars*);
     
+    
+    double get_key_energies(int);// method to get the 6 important energies, need to input index of energy you want?
 
 };
 // ----------- End of Albert Edits -----------------

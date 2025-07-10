@@ -18,7 +18,7 @@ class sterile : public particle{
         
         double rate[5];
         
-        double E_low, E_high;//
+        double E_low, E_high;
         double energies[6];
         bool decay_on;
     public:

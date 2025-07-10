@@ -6,13 +6,12 @@
 
 freqs_ntT::freqs_ntT(freqs_ntT* copy_me) : dep_vars(copy_me){
     num_bins = copy_me->get_num_bins();
-    eps = new dummy_vars(copy_me->get_eps());
-    
+    eps = new mixed_dummy_vars(copy_me->get_eps()); 
 }
 
-freqs_ntT::freqs_ntT(dummy_vars* e, double n0, double time, double Temp, bool thermal_dist) : dep_vars(6 * e->get_length() + 3){
+freqs_ntT::freqs_ntT(mixed_dummy_vars* e, double n0, double time, double Temp, bool thermal_dist) : dep_vars(6 * e->get_length() + 3){
     num_bins = e->get_length();
-    eps = new dummy_vars(e);
+    eps = new mixed_dummy_vars(e);
     
     values[6 * num_bins] = n0;
     values[6 * num_bins + 1] = time;
@@ -38,13 +37,13 @@ freqs_ntT::~freqs_ntT(){
 int freqs_ntT::get_num_bins()
 {   return num_bins; }
 
-dummy_vars* freqs_ntT::get_eps()
+mixed_dummy_vars* freqs_ntT::get_eps()
 {   return eps; }
 
-void freqs_ntT::new_eps(dummy_vars* e)
+void freqs_ntT::new_eps(mixed_dummy_vars* e)
 {
     delete eps;
-    eps = new dummy_vars(e);
+    eps = new mixed_dummy_vars(e);
 }
 
 double freqs_ntT::get_sterile_density()
@@ -138,8 +137,9 @@ void freqs_ntT::interpolated_f_values(double x, double* results){
 void freqs_ntT::interpolated_f_values(double x, int bin, double* results)
 {
     if(x < eps->get_max_linspace()){
-        int ind = std::max(0, bin-2);
-        ind = std::min(num_bins-1-4, ind);
+        /*int ind = std::max(0, bin-2);
+        ind = std::min(num_bins-1-4, ind);*/
+        int ind = bin;
         
         double x_vals[5];
         double y_vals[5];
@@ -163,7 +163,48 @@ void freqs_ntT::interpolated_f_values(double x, int bin, double* results)
     }
 }
 
-
+void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
+    int bin = eps->bin_below(x);    
+    
+    // Find "bin 0"
+    int bin0;
+    
+    double key_eps[6];
+    int key_bins[6];
+    
+    // Calculate key_eps and bin_eps
+    for(int i = 0; i < 6; i++){
+        key_eps[i] = eps->get_key_energies(i)T_cm;
+        key_bins[i] = eps->bin_below(key_eps[i]);
+        std::cout << key_eps[i] << "\t";
+    }
+    
+    
+    std::cout << std::endl << "bin_below= " << bin;
+    // Check for case: need to check for all 6 key bins
+    for(int i = 0; i < 6; i++){
+        // Check for case 1 
+        if(bin == key_bins[i]+1){
+            bin0 = bin;
+            std::cout << std::endl << "Case 1 at bin " << bin << std::endl;
+        }
+        // Check for case 2
+        else if(bin == key_bins[i]-1){
+            bin0 = bin - 3;
+            std::cout << std::endl << "Case 2 at bin " << bin << std::endl;
+        }
+        // Neither case is true
+        else{
+            bin0 = std::max(0,bin-2); // deals w/ x too small
+            bin0 = std::min(num_bins-1-4, bin0); // deals w/ x too big
+        }
+    }
+    
+    std::cout << "     bin0 = " << bin0 << std::endl;
+    
+    // Call interpolate function
+    interpolated_f_values(x, bin0, results);
+}
 
 double fifth_order_fit(double x, double* x_vals, double* y_vals){
     double fit = 0;

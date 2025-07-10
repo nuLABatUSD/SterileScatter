@@ -11,7 +11,7 @@
 
 using std::ostream;
 
-sterile_decay::sterile_decay(double ms, double theta, double T0, dummy_vars* e) : ODESolve(){
+sterile_decay::sterile_decay(double ms, double theta, double T0, mixed_dummy_vars* e) : ODESolve(){
     thermal = new universe(false);
     nu_s = new sterile(ms, theta);
     
@@ -29,7 +29,7 @@ sterile_decay::sterile_decay(double ms, double theta, double a0, double af, int 
     thermal = new universe(false);
     nu_s = new sterile(ms, theta);
 
-    gel_linspace_gl* eps = nu_s->new_eps_bins(a0, af, N);
+    mixed_dummy_vars* eps = nu_s->new_eps_bins(0.0, a0, af, ms, N);
     
     double T0 = 1./a0;
 
@@ -50,10 +50,10 @@ sterile_decay::~sterile_decay()
     delete thermal;
     delete nu_s; }
     
-double sterile_decay::shift_eps_by_multiple(double a_mult)
-{   return shift_eps(x_value * a_mult);  }
+/*double sterile_decay::shift_eps_by_multiple(double a_mult)
+{   return shift_eps(x_value * a_mult);  }*/
     
-double sterile_decay::shift_eps(double af)
+/*double sterile_decay::shift_eps(double af)
 {
     if(!nu_s->is_decay_on()){
         return af;}
@@ -145,7 +145,7 @@ double sterile_decay::shift_eps(double af)
     
     return af;
     
-}
+}*/
     
 void sterile_decay::f(double a, freqs_ntT* inputs, freqs_ntT* derivs){
     dep_vars** p_all = new dep_vars*[6];
@@ -224,4 +224,9 @@ double sterile_decay::get_Neff(){
     Neff /= pow(y_values->get_Temp(), 4);
     Neff *= y_values->neutrino_energy(1./x_value);
     return Neff;
+}   
+
+freqs_ntT* sterile_decay::get_y_values(){
+    return y_values;
 }
+

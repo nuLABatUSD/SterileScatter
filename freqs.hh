@@ -2,6 +2,7 @@
 #define __FREQS_HH__
 
 #include "dummy_dep_vars.hh"
+#include "mixed_dummy_vars.hh"
 
 using std::ostream;
 
@@ -9,15 +10,15 @@ class freqs_ntT : public dep_vars{
     protected:
         int num_bins;
         
-        dummy_vars* eps;
+        mixed_dummy_vars* eps;
         
     public:
-        freqs_ntT(dummy_vars*, double, double, double, bool);
+        freqs_ntT(mixed_dummy_vars*, double, double, double, bool);
         freqs_ntT(freqs_ntT*);
         ~freqs_ntT();
         
-        dummy_vars* get_eps();
-        void new_eps(dummy_vars*);
+        mixed_dummy_vars* get_eps();
+        void new_eps(mixed_dummy_vars*);
         int get_num_bins();
         
         double get_sterile_density();
@@ -41,6 +42,10 @@ class freqs_ntT : public dep_vars{
         
         void interpolated_f_values(double, double*);
         void interpolated_f_values(double, int, double*);
+        
+        // Added by Albert
+        void interpolate_extrapolate(double, double, double*);
+        //double get_energies(int); // method to get energy from energies array
         
         double interpolated_f_value(double);
         double interpolated_f_value(double, int);

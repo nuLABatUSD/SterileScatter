@@ -16,9 +16,17 @@ using std::endl;
 using std::ostream;
 
 
-mixed_dummy_vars::mixed_dummy_vars(double E_start, double a0, double af, double m_s, int N) : dummy_vars(N){
-    double Tcm_0 = 1/a0;
-    double Tcm_f = 1/af;
+mixed_dummy_vars::mixed_dummy_vars(double E_start, double a_0, double a_f, double m_s, int num) : dummy_vars(num){
+// Update Protected Values
+    Estart = E_start;
+    a0 = a_0;
+    af = a_f;
+    ms = m_s;
+    N = num;
+    
+// Comoving Temperatures
+    double Tcm_0 = 1/a_0;
+    double Tcm_f = 1/a_f;
     
 // Find E-values
     double E0_1 = m_s / 2.0;
@@ -41,6 +49,9 @@ mixed_dummy_vars::mixed_dummy_vars(double E_start, double a0, double af, double 
     
     double Emin_4 = gamma_4 * (E_nu_prime - (v_4 * p_nu_prime));
     double Emax_4 = gamma_4 * (E_nu_prime + (v_4 * p_nu_prime));
+    
+// Update max_linspace (inherited from dummy_vars)
+    max_linspace = E0_1/Tcm_f;
     
 // Make first 10 Gauss-Legendre points
     gel_dummy_vars* gel_1 = new gel_dummy_vars(10, E_start/Tcm_0, Emin_3/Tcm_0);
@@ -117,4 +128,30 @@ mixed_dummy_vars::mixed_dummy_vars(double E_start, double a0, double af, double 
     delete lin_4;
     delete gl;
     
+    // Update energies array (protected in mixed_dummy_vars)
+    key_energies[0] = Emin_3;
+    key_energies[1] = Emin_4;
+    key_energies[2] = Emax_4;
+    key_energies[3] = Emax_3;
+    key_energies[4] = E0_2;
+    key_energies[5] = E0_1;
+    
+}
+
+mixed_dummy_vars::mixed_dummy_vars(mixed_dummy_vars* copy_me)
+{
+    N = copy_me->get_length();
+    values = new double[N]();
+    weights = new double[N]();
+    max_linspace = copy_me->get_max_linspace();
+
+    for(int i = 0; i<N; i++)
+        {
+            values[i] = copy_me->get_value(i);
+            weights[i] = copy_me->get_weight(i);
+        }
+}
+
+double mixed_dummy_vars::get_key_energies(int ind){
+    return key_energies[ind];
 }
