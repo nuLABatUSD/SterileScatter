@@ -53,7 +53,7 @@ sterile_decay::~sterile_decay()
 /*double sterile_decay::shift_eps_by_multiple(double a_mult)
 {   return shift_eps(x_value * a_mult);  }*/
     
-/*double sterile_decay::shift_eps(double af)
+double sterile_decay::shift_eps(double af)
 {
     if(!nu_s->is_decay_on()){
         return af;}
@@ -65,11 +65,33 @@ sterile_decay::~sterile_decay()
     }
 
         
-    gel_linspace_gl* new_eps = nu_s->new_eps_bins(x_value, af, y_values->get_num_bins());
+    mixed_dummy_vars* new_eps = nu_s->new_eps_bins(0.0, x_value, af, nu_s->get_ms(), y_values->get_num_bins());
     
     dummy_vars* old_eps = y_values->get_eps();
+    // should this be dummy_vars* or mixed_dummy_vars* - does this matter?
     
-    int num_lin = new_eps->get_length() - new_eps->get_num_gl();
+    double T_cm = 1.0/x_value; // x_value = a0 ? T_cm = 1 / a0
+    double results[6];
+    
+    for(int i = 0; i < y_values->get_num_bins(); i++){
+        double eps_value = y_values->get_eps_value(i);
+        
+        // Get f values -> stored in results
+        y_values->interpolate_extrapolate(eps_value, T_cm, results);
+        for (int j = 0; j < 6; j++){
+            // Set the f values in the freqs object to the new values that match the new eps
+            y_values->set_f_value(i, j, results[j]);
+        }
+    }
+    
+    // What is the delete y_values for?
+    /*
+    delete y_values;
+    y_values = new_y_values;
+    */
+    return af;
+    
+    /*int num_lin = new_eps->get_length() - new_eps->get_num_gl();
     
     freqs_ntT* new_y_values = new freqs_ntT(new_eps, y_values->get_sterile_density(), y_values->get_time(), y_values->get_Temp(), false);
 
@@ -143,9 +165,9 @@ sterile_decay::~sterile_decay()
     delete y_values;
     y_values = new_y_values;
     
-    return af;
+    return af;*/
     
-}*/
+}
     
 void sterile_decay::f(double a, freqs_ntT* inputs, freqs_ntT* derivs){
     dep_vars** p_all = new dep_vars*[6];

@@ -6,6 +6,9 @@
 #include "dummy_dep_vars.hh"
 
 sterile::sterile(double m_s, double th) : particle(m_s){
+    // Update Protected Value
+    ms = m_s;
+    
     theta = th;
     sin2_2th = pow(sin(theta), 2);
     
@@ -30,6 +33,10 @@ sterile::sterile(double m_s, double th) : particle(m_s){
 
 sterile::sterile(sterile* copy_me) : sterile(copy_me->mass(), copy_me->get_theta())
 {   decay_on = copy_me->is_decay_on();  }
+
+double sterile::get_ms(){
+    return ms;
+}
 
 double sterile::get_theta()
 {   return theta;  }

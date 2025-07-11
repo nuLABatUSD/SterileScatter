@@ -21,9 +21,13 @@ class sterile : public particle{
         double E_low, E_high;
         double energies[6];
         bool decay_on;
+        
+        double ms;// Added by Albert
     public:
         sterile(double, double);
         sterile(sterile*);
+        
+        double get_ms(); // Added by Albert
         
         double get_theta();
         

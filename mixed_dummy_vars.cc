@@ -138,18 +138,16 @@ mixed_dummy_vars::mixed_dummy_vars(double E_start, double a_0, double a_f, doubl
     
 }
 
-mixed_dummy_vars::mixed_dummy_vars(mixed_dummy_vars* copy_me)
+mixed_dummy_vars::mixed_dummy_vars(mixed_dummy_vars* copy_me) : dummy_vars(copy_me)
 {
-    N = copy_me->get_length();
-    values = new double[N]();
-    weights = new double[N]();
-    max_linspace = copy_me->get_max_linspace();
-
-    for(int i = 0; i<N; i++)
+    for(int i = 0; i<6; i++)
         {
-            values[i] = copy_me->get_value(i);
-            weights[i] = copy_me->get_weight(i);
+            key_energies[i] = copy_me->get_key_energies(i);
         }
+}
+
+double mixed_dummy_vars::get_ms(){
+    return ms;
 }
 
 double mixed_dummy_vars::get_key_energies(int ind){

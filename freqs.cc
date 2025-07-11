@@ -166,7 +166,6 @@ void freqs_ntT::interpolated_f_values(double x, int bin, double* results)
 void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
     int bin = eps->bin_below(x);    
     
-    // Find "bin 0"
     int bin0;
     
     double key_eps[6];
@@ -174,24 +173,24 @@ void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
     
     // Calculate key_eps and bin_eps
     for(int i = 0; i < 6; i++){
-        key_eps[i] = eps->get_key_energies(i)T_cm;
+        key_eps[i] = eps->get_key_energies(i)/T_cm;
         key_bins[i] = eps->bin_below(key_eps[i]);
-        std::cout << key_eps[i] << "\t";
-    }
+    }// Improvement: Calculating this every time is silly, these should be stored somewhere and just referenced
     
-    
-    std::cout << std::endl << "bin_below= " << bin;
+    //std::cout << "bin_below= " << bin;
     // Check for case: need to check for all 6 key bins
     for(int i = 0; i < 6; i++){
         // Check for case 1 
         if(bin == key_bins[i]+1){
             bin0 = bin;
-            std::cout << std::endl << "Case 1 at bin " << bin << std::endl;
+            //std::cout << std::endl << "Case 1 at bin " << bin << std::endl;
+            break;
         }
         // Check for case 2
         else if(bin == key_bins[i]-1){
             bin0 = bin - 3;
-            std::cout << std::endl << "Case 2 at bin " << bin << std::endl;
+            //std::cout << std::endl << "Case 2 at bin " << bin << std::endl;
+            break;
         }
         // Neither case is true
         else{
@@ -199,8 +198,7 @@ void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
             bin0 = std::min(num_bins-1-4, bin0); // deals w/ x too big
         }
     }
-    
-    std::cout << "     bin0 = " << bin0 << std::endl;
+    //std::cout << "     bin0 = " << bin0 << std::endl;
     
     // Call interpolate function
     interpolated_f_values(x, bin0, results);

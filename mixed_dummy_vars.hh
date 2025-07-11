@@ -26,7 +26,7 @@ class mixed_dummy_vars : public dummy_vars{
     mixed_dummy_vars(double, double, double, double, int);// E_start, a_0, a_f, m_s, number of points num
     mixed_dummy_vars(mixed_dummy_vars*);
     
-    
+    double get_ms();
     double get_key_energies(int);// method to get the 6 important energies, need to input index of energy you want?
 
 };

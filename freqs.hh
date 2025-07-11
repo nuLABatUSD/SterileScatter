@@ -43,9 +43,7 @@ class freqs_ntT : public dep_vars{
         void interpolated_f_values(double, double*);
         void interpolated_f_values(double, int, double*);
         
-        // Added by Albert
         void interpolate_extrapolate(double, double, double*);
-        //double get_energies(int); // method to get energy from energies array
         
         double interpolated_f_value(double);
         double interpolated_f_value(double, int);
