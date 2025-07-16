@@ -177,18 +177,29 @@ void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
         key_bins[i] = eps->bin_below(key_eps[i]);
     }// Improvement: Calculating this every time is silly, these should be stored somewhere and just referenced
     
+   /* if(bin == 0){
+        for(int i = 0; i < 6; i++){
+            std::cout << key_eps[i] << "         ";
+        }
+        std::cout << std::endl;
+        for(int i = 0; i < 6; i++){
+            std::cout << key_bins[i] << "         ";
+        }
+        std::cout << eps->get_max_linspace() << std::endl;
+    }*/
+    
     //std::cout << "bin_below= " << bin;
     // Check for case: need to check for all 6 key bins
     for(int i = 0; i < 6; i++){
-        // Check for case 1 
-        if(bin == key_bins[i]+1){
-            bin0 = bin;
+        // Check for case 1: Above key bin
+        if(bin == key_bins[i] || bin == key_bins[i]+1 || bin == key_bins[i]+2){
+            bin0 = key_bins[i] + 1;
             //std::cout << std::endl << "Case 1 at bin " << bin << std::endl;
             break;
         }
-        // Check for case 2
+        // Check for case 2: Below or at key bin
         else if(bin == key_bins[i]-1){
-            bin0 = bin - 3;
+            bin0 = key_bins[i] - 4;
             //std::cout << std::endl << "Case 2 at bin " << bin << std::endl;
             break;
         }

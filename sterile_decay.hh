@@ -23,7 +23,7 @@ class sterile_decay : public ODESolve<freqs_ntT>{
         ~sterile_decay();
 
         double shift_eps(double);
-        //double shift_eps_by_multiple(double);
+        double shift_eps_by_multiple(double);
         
         void f(double, freqs_ntT*, freqs_ntT*);
         
@@ -34,6 +34,8 @@ class sterile_decay : public ODESolve<freqs_ntT>{
         double get_Neff();
         
         freqs_ntT* get_y_values();
+        
+        double get_neutrino_energy(double);
 };
 
 #endif

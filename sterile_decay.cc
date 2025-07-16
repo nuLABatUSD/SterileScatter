@@ -50,8 +50,8 @@ sterile_decay::~sterile_decay()
     delete thermal;
     delete nu_s; }
     
-/*double sterile_decay::shift_eps_by_multiple(double a_mult)
-{   return shift_eps(x_value * a_mult);  }*/
+double sterile_decay::shift_eps_by_multiple(double a_mult)
+{   return shift_eps(x_value * a_mult);  }
     
 double sterile_decay::shift_eps(double af)
 {
@@ -64,108 +64,30 @@ double sterile_decay::shift_eps(double af)
         return af;   
     }
 
-        
+    
+    // ------------------------------------------------------
+    
+    freqs_ntT* new_f = new freqs_ntT(y_values);
+      
     mixed_dummy_vars* new_eps = nu_s->new_eps_bins(0.0, x_value, af, nu_s->get_ms(), y_values->get_num_bins());
     
-    dummy_vars* old_eps = y_values->get_eps();
-    // should this be dummy_vars* or mixed_dummy_vars* - does this matter?
+    new_f->new_eps(new_eps);
     
-    double T_cm = 1.0/x_value; // x_value = a0 ? T_cm = 1 / a0
+    double T_cm = 1.0/x_value;
     double results[6];
     
     for(int i = 0; i < y_values->get_num_bins(); i++){
-        double eps_value = y_values->get_eps_value(i);
-        
-        // Get f values -> stored in results
+        double eps_value = new_eps->get_value(i);
         y_values->interpolate_extrapolate(eps_value, T_cm, results);
+        
         for (int j = 0; j < 6; j++){
-            // Set the f values in the freqs object to the new values that match the new eps
-            y_values->set_f_value(i, j, results[j]);
+            new_f->set_f_value(i, j, results[j]);
         }
     }
     
-    // What is the delete y_values for?
-    /*
     delete y_values;
-    y_values = new_y_values;
-    */
+    y_values = new_f;
     return af;
-    
-    /*int num_lin = new_eps->get_length() - new_eps->get_num_gl();
-    
-    freqs_ntT* new_y_values = new freqs_ntT(new_eps, y_values->get_sterile_density(), y_values->get_time(), y_values->get_Temp(), false);
-
-    int old_tail_new_index =new_eps->get_length()-1;
-    for( ; old_tail_new_index >= 0; old_tail_new_index--)
-        if(new_eps->get_value(old_tail_new_index) < old_eps->get_max_linspace())
-            break;
-            
-    double interpolated_values[6];
-    for(int i = old_tail_new_index; i < new_eps->get_length(); i++){
-        y_values->interpolated_f_values(new_eps->get_value(i), interpolated_values);
-        for(int j = 0; j < 6; j++)
-            new_y_values->set_f_value(i, j, interpolated_values[j]);
-    }        
-    
-    dep_vars** new_nu_dist = new dep_vars*[6];
-    dep_vars** old_nu_dist = new dep_vars*[6];
-    for(int j = 0; j < 6; j++){
-        new_nu_dist[j] = new dep_vars(y_values->get_num_bins());
-        old_nu_dist[j] = new dep_vars(y_values->get_num_bins());
-        new_y_values->get_neutrino_distribution(j, new_nu_dist[j]);
-        y_values->get_neutrino_distribution(j, old_nu_dist[j]);
-    }
-    
-    double old_cdf, new_cdf;
-    
-    y_values->interpolated_f_values(new_eps->get_value(old_tail_new_index), interpolated_values);
-        
-    for(int j = 0; j < 6; j++){
-        old_cdf = old_eps->partial_integrate_pow_end(num_lin, old_nu_dist[j], 3);
-        
-        
-        double blah = 0.5 * (old_eps->get_max_linspace() - new_eps->get_value(old_tail_new_index)) * (interpolated_values[j] * pow(new_eps->get_value(old_tail_new_index), 3)+ old_nu_dist[j]->get_value(num_lin-1) * pow(old_eps->get_max_linspace(),3));
-        old_cdf += blah;
-        new_cdf = new_eps->partial_integrate_pow_end(old_tail_new_index, new_nu_dist[j], 3);
-        
-        new_nu_dist[j]->multiply_by(old_cdf/new_cdf);
-    }
-    
-    int bin_above;
-    for(int i = old_tail_new_index-1; i > new_eps->get_num_gel(); i--){
-        bin_above = old_eps->bin_below(new_eps->get_value(i)) + 1;
-        y_values->interpolated_f_values(new_eps->get_value(i), interpolated_values);
-        for(int j = 0; j < 6; j++){
-            old_cdf = old_eps->partial_integrate_pow_end(bin_above, old_nu_dist[j], 3);
-            old_cdf += 0.5 * (old_eps->get_value(bin_above) - new_eps->get_value(i)) * (interpolated_values[j] * pow(new_eps->get_value(i), 3));
-            
-            new_cdf = new_eps->partial_integrate_pow_end(i+1, new_nu_dist[j], 3);
-            
-            new_nu_dist[j]->set_value(i, (old_cdf - new_cdf) / pow(new_eps->get_value(i), 3) / new_eps->get_weight(i));            
-        }
-    }
-    
-    for(int i = 0; i <= new_eps->get_num_gel(); i++){
-        y_values->interpolated_f_values(new_eps->get_value(i), interpolated_values);
-        for(int j = 0; j < 6; j++)
-            new_nu_dist[j]->set_value(i, interpolated_values[j]);
-    }
-        
-    for(int j = 0; j < 6; j++){
-        new_y_values->set_neutrino_distribution(j, new_nu_dist[j]);
-        
-        delete new_nu_dist[j];
-        delete old_nu_dist[j];
-    }    
-    
-    delete[] new_nu_dist;
-    delete[] old_nu_dist;
-    delete new_eps;
-    
-    delete y_values;
-    y_values = new_y_values;
-    
-    return af;*/
     
 }
     
@@ -250,5 +172,9 @@ double sterile_decay::get_Neff(){
 
 freqs_ntT* sterile_decay::get_y_values(){
     return y_values;
+}
+
+double sterile_decay::get_neutrino_energy(double a){
+    return y_values->neutrino_energy(a);
 }
 
