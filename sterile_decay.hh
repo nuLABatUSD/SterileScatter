@@ -23,7 +23,7 @@ class sterile_decay : public ODESolve<freqs_ntT>{
         ~sterile_decay();
 
         double shift_eps(double);
-        double shift_eps_by_multiple(double);
+        //double shift_eps_by_multiple(double);
         
         void f(double, freqs_ntT*, freqs_ntT*);
         

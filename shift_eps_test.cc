@@ -58,25 +58,22 @@ int main()
     double a0, af, T_0, T_f, e1, e2, ratio;
     
     a0 = 0.1;
-    af = 0.11;
+    af = a0 + 0.01;
     T_0 = 1/a0;
     T_f = 1/af;
 
-    mixed_dummy_vars* eps = new mixed_dummy_vars(0,a0,af,m_s,N);
-        
+    mixed_dummy_vars* eps = new mixed_dummy_vars(a0,af,m_s,N);
     sterile_decay* sim = new sterile_decay(m_s, 5*pow(10,-5), T_0, eps);
+    
 
-    ofstream MyFile("outputs/eps_output.csv"); // Output file for eps & weights of each run
-    ofstream MyFile2("outputs/ned_output.csv"); // Output file for neutrino energy densities pre & post shift + ratio
+    ofstream MyFile("outputs/eps_output_sof.csv"); // Output file for eps & weights of each run
+    ofstream MyFile2("outputs/ned_output_sof.csv"); // Output file for neutrino energy densities pre & post shift + ratio
     
-    int num_runs = 100;
+    int num_runs = 5;
     for(int i = 0; i < num_runs; i++){
-        a0 = 0.1 + (0.01 * i);
-        af = 0.11 + (0.01 * i);
-        T_0 = 1/a0;
-        T_f = 1/af;
+        
     
-        string sim_output = "outputs/sim_output" + to_string(i+1) + ".csv";
+        string sim_output = "outputs/sim_output_sof" + to_string(i+1) + ".csv";
         
         sim->run(1500, 1, af, sim_output, true);
         
@@ -87,7 +84,12 @@ int main()
         e1 = sim->get_neutrino_energy(af);
         MyFile2 << e1 << ",";
         
-        sim->shift_eps_by_multiple(1.1);
+        sim->shift_eps(af+0.01);
+        
+        a0 += 0.01;
+        af += 0.01;
+        T_0 = 1/a0;
+        T_f = 1/af;
         
         e2 = sim->get_neutrino_energy(af);
         MyFile2 << e2 << ",";

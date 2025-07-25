@@ -37,6 +37,10 @@ freqs_ntT::~freqs_ntT(){
 int freqs_ntT::get_num_bins()
 {   return num_bins; }
 
+double freqs_ntT::get_a0(){
+    return eps->get_a0();
+}
+
 mixed_dummy_vars* freqs_ntT::get_eps()
 {   return eps; }
 
@@ -177,7 +181,7 @@ void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
         key_bins[i] = eps->bin_below(key_eps[i]);
     }// Improvement: Calculating this every time is silly, these should be stored somewhere and just referenced
     
-   /* if(bin == 0){
+    if(bin == 0){
         for(int i = 0; i < 6; i++){
             std::cout << key_eps[i] << "         ";
         }
@@ -186,7 +190,7 @@ void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
             std::cout << key_bins[i] << "         ";
         }
         std::cout << eps->get_max_linspace() << std::endl;
-    }*/
+    }
     
     //std::cout << "bin_below= " << bin;
     // Check for case: need to check for all 6 key bins

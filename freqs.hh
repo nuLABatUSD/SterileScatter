@@ -20,6 +20,7 @@ class freqs_ntT : public dep_vars{
         mixed_dummy_vars* get_eps();
         void new_eps(mixed_dummy_vars*);
         int get_num_bins();
+        double get_a0(); // gets the a0 from the mixed_dummy_vars object
         
         double get_sterile_density();
         double get_time();

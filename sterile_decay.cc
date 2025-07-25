@@ -29,7 +29,8 @@ sterile_decay::sterile_decay(double ms, double theta, double a0, double af, int 
     thermal = new universe(false);
     nu_s = new sterile(ms, theta);
 
-    mixed_dummy_vars* eps = nu_s->new_eps_bins(0.0, a0, af, ms, N);
+    mixed_dummy_vars* eps = nu_s->new_eps_bins(a0, af, ms, N); 
+    // help! - should this call the original mdv constructor or the shift constructor?
     
     double T0 = 1./a0;
 
@@ -50,8 +51,8 @@ sterile_decay::~sterile_decay()
     delete thermal;
     delete nu_s; }
     
-double sterile_decay::shift_eps_by_multiple(double a_mult)
-{   return shift_eps(x_value * a_mult);  }
+/*double sterile_decay::shift_eps_by_multiple(double a_mult)
+{   return shift_eps(x_value * a_mult);  }*/
     
 double sterile_decay::shift_eps(double af)
 {
@@ -63,13 +64,14 @@ double sterile_decay::shift_eps(double af)
         nu_s->turn_decay_off();
         return af;   
     }
-
     
     // ------------------------------------------------------
     
     freqs_ntT* new_f = new freqs_ntT(y_values);
-      
-    mixed_dummy_vars* new_eps = nu_s->new_eps_bins(0.0, x_value, af, nu_s->get_ms(), y_values->get_num_bins());
+    
+    std::cout << y_values->get_a0() << std::endl << std::endl;
+    mixed_dummy_vars* new_eps = nu_s->new_eps_bins(y_values->get_a0(), x_value, af, nu_s->get_ms(), y_values->get_num_bins());
+    // update to call the shift constructor
     
     new_f->new_eps(new_eps);
     

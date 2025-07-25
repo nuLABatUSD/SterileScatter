@@ -326,8 +326,15 @@ gel_linspace_gl* sterile::new_eps_bins(double a_start, double a_end, int N){
     
     return result;
 }
-mixed_dummy_vars* sterile::new_eps_bins(double E_start, double a0, double af, double m_s, int N){
-    mixed_dummy_vars* result = new mixed_dummy_vars(E_start, a0, af, m_s, N);
+
+mixed_dummy_vars* sterile::new_eps_bins(double a0, double af, double m_s, int N){
+    mixed_dummy_vars* result = new mixed_dummy_vars(a0, af, m_s, N);
+    
+    return result;
+}
+
+mixed_dummy_vars* sterile::new_eps_bins(double old_a0, double old_af, double new_af, double m_s, int N){
+    mixed_dummy_vars* result = new mixed_dummy_vars(old_a0, old_af, new_af, m_s, N);
     
     return result;
 }

@@ -46,7 +46,8 @@ class sterile : public particle{
         double get_E_high();
         
         gel_linspace_gl* new_eps_bins(double, double, int);
-        mixed_dummy_vars* new_eps_bins(double, double, double, double, int);
+        mixed_dummy_vars* new_eps_bins(double, double, double, int);
+        mixed_dummy_vars* new_eps_bins(double, double, double, double, int); // shift constructor
         
         double get_decay_type_one(double, double, double);
         double get_decay_type_two(double, double);
