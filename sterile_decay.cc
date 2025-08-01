@@ -69,7 +69,6 @@ double sterile_decay::shift_eps(double af)
     
     freqs_ntT* new_f = new freqs_ntT(y_values);
     
-    std::cout << y_values->get_a0() << std::endl << std::endl;
     mixed_dummy_vars* new_eps = nu_s->new_eps_bins(y_values->get_a0(), x_value, af, nu_s->get_ms(), y_values->get_num_bins());
     // update to call the shift constructor
     
@@ -91,6 +90,13 @@ double sterile_decay::shift_eps(double af)
     y_values = new_f;
     return af;
     
+}
+
+bool sterile_decay::check_decay_on(){
+    if(nu_s->is_decay_on() == true){
+        return true;}
+    else{
+        return false;}
 }
     
 void sterile_decay::f(double a, freqs_ntT* inputs, freqs_ntT* derivs){

@@ -140,11 +140,6 @@ mixed_dummy_vars::mixed_dummy_vars(double old_a0, double old_af, double new_af, 
             intBounds[i] = key_energy/Tcm_f;
             j=0;} 
     }
-    std::cout << std::endl << std::endl;
-    for(int i = 0; i < 11; i++){
-        std::cout << intBounds[i] << "         ";
-    }
-    std::cout << std::endl << std::endl;
     
     // Assign weights and values
     int ind = 0;
