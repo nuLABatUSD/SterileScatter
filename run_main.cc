@@ -59,15 +59,16 @@ int main(int argc, char* argv[])
     
     int num_runs = 2000;
     bool decay_state;
+    
     for(int i = 0; i < num_runs; i++){
         
     
         string sim_output = folder_name + "/sim_output" + to_string(i+1) + ".csv";
         
+        sim->print_eps_file(MyFile1);
         sim->run(1500, 1, af, sim_output, true); // usually run with 1500
         
         
-        sim->print_eps_file(MyFile1);
         
         
         sim->shift_eps(af+0.01);

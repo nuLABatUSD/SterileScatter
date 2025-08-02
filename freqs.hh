@@ -44,7 +44,7 @@ class freqs_ntT : public dep_vars{
         void interpolated_f_values(double, double*);
         void interpolated_f_values(double, int, double*);
         
-        void interpolate_extrapolate(double, double, double*);
+        int interpolate_extrapolate(double, double, double*);
         
         double interpolated_f_value(double);
         double interpolated_f_value(double, int);

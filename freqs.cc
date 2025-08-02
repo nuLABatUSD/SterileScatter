@@ -167,8 +167,12 @@ void freqs_ntT::interpolated_f_values(double x, int bin, double* results)
     }
 }
 
-void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
+int freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
     int bin = eps->bin_below(x);    
+    
+    if(x > eps->get_max_linspace()){
+        interpolated_f_values(x, bin, results);
+        return bin;}
     
     int bin0;
     
@@ -187,13 +191,13 @@ void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
         // Check for case 1: Above key bin
         if(bin == key_bins[i] || bin == key_bins[i]+1 || bin == key_bins[i]+2){
             bin0 = key_bins[i] + 1;
-            //std::cout << std::endl << "Case 1 at bin " << bin << std::endl;
+            std::cout << std::endl << "Case 1 at bin " << bin << std::endl;
             break;
         }
         // Check for case 2: Below or at key bin
         else if(bin == key_bins[i]-1){
             bin0 = key_bins[i] - 4;
-            //std::cout << std::endl << "Case 2 at bin " << bin << std::endl;
+            std::cout << std::endl << "Case 2 at bin " << bin << std::endl;
             break;
         }
         // Neither case is true
@@ -206,6 +210,8 @@ void freqs_ntT::interpolate_extrapolate(double x, double T_cm, double* results){
     
     // Call interpolate function
     interpolated_f_values(x, bin0, results);
+    
+    return bin0;
 }
 
 double fifth_order_fit(double x, double* x_vals, double* y_vals){

@@ -76,14 +76,17 @@ double sterile_decay::shift_eps(double af)
     
     double T_cm = 1.0/x_value;
     double results[6];
+    int bin0;
     
     for(int i = 0; i < y_values->get_num_bins(); i++){
         double eps_value = new_eps->get_value(i);
-        y_values->interpolate_extrapolate(eps_value, T_cm, results);
+        bin0 = y_values->interpolate_extrapolate(eps_value, T_cm, results);
         
         for (int j = 0; j < 6; j++){
             new_f->set_f_value(i, j, results[j]);
         }
+        
+        std::cout << eps_value << ", " << bin0 << ", " << y_values->get_eps_value(bin0) << std::endl;
     }
     
     delete y_values;
