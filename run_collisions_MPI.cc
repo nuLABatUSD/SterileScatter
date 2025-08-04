@@ -3,13 +3,17 @@
 #include "dummy_dep_vars.hh"
 #include "freqs.hh"
 #include "collisions_MPI.hh"
+
 #include "mpi.h"
+
 
 #include <iostream>
 #include <chrono>
 
 using std::cout;
 using std::endl;
+
+using namespace std;
 
 using namespace std::chrono;
 
@@ -20,7 +24,7 @@ int main(int argc, char* argv[])
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-    
+        
     mixed_dummy_vars* eps = new mixed_dummy_vars(0.10, 0.11, 300., 200);
 
     collisions* C_MPI = new collisions(myid, numprocs, eps);
@@ -29,7 +33,7 @@ int main(int argc, char* argv[])
 
     auto start = high_resolution_clock::now();
     
-    C_MPI->compute_R(10., 10., R_values);
+    C_MPI->compute_R(10., 10., R_values, true); // either use false as the final argument (or leave blank, false is default argument)
         
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);
@@ -42,5 +46,6 @@ int main(int argc, char* argv[])
         
     delete eps;
     
-    MPI_Finalize();   
+    MPI_Finalize();
+    return 0;
 }

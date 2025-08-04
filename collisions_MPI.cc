@@ -23,8 +23,11 @@ collisions::collisions(int rank, int num_ranks, mixed_dummy_vars* e){
             num_integrators++;
         
         integrators = new collision_integral*[num_integrators];
-        for(int i = myid-1; i < eps->get_length(); i += numprocs-1)
-            integrators[i] = new nu_nu_collision(i, eps);
+        int j = 0;
+        for(int i = myid-1; i < eps->get_length(); i += numprocs-1){
+            integrators[j] = new nu_nu_collision(i, eps);
+            j++;
+        }
     }
 }
 
@@ -38,7 +41,7 @@ collisions::~collisions(){
     }
 }
 
-void collisions::compute_R(double Tcm, double T, freqs_ntT* output){
+void collisions::compute_R(double Tcm, double T, freqs_ntT* output, bool print){
     output->zeros();
     
     double* out_vals = new double[6 * eps->get_length()]();
@@ -49,14 +52,17 @@ void collisions::compute_R(double Tcm, double T, freqs_ntT* output){
     double dummy_int[6];
     
     if(myid == 0){
-        MPI_Recv(dummy_int, 6, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        sender = status.MPI_SOURCE;
-        tag = status.MPI_TAG;
-        
-        for(int j = 0; j < 6; j++)
-            out_vals[j*eps->get_length() + tag] += dummy_int[j];
-        
-        cout << "Received: " << tag << endl;
+        for(int i = 0; i < eps->get_length(); i++){
+            MPI_Recv(dummy_int, 6, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            sender = status.MPI_SOURCE;
+            tag = status.MPI_TAG;
+            
+            for(int j = 0; j < 6; j++)
+                out_vals[j*eps->get_length() + tag] += dummy_int[j];
+            
+            if(print)
+                cout << "Received: " << tag << endl;
+        }
     }
     else{
         for(int j = 0; j < num_integrators; j++){
@@ -69,6 +75,7 @@ void collisions::compute_R(double Tcm, double T, freqs_ntT* output){
     
     for(int i = 0; i < 6 * eps->get_length(); i++)
         output->set_value(i, out_vals[i]);
+
     
     delete[] out_vals;
 }

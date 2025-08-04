@@ -20,10 +20,6 @@ collision_integral::collision_integral(int b, mixed_dummy_vars* e){
     eps = new mixed_dummy_vars(e);
 }
 
-collision_integral::~collision_integral(){
-    delete eps;
-}
-
 int collision_integral::get_bin()
 {   return bin;}
 
@@ -72,6 +68,8 @@ nu_nu_collision::~nu_nu_collision(){
 
     delete outer_dummy_vars;
     delete outer_vals;
+    
+    delete eps;
 }
 
 void nu_nu_collision::populate_F(freqs_ntT* f, double Tcm, bool net){

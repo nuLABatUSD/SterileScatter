@@ -29,7 +29,7 @@ class collision_integral{
 
     public:
         collision_integral(int, mixed_dummy_vars*); //(int bin, int flavor, dummy_vars* eps);
-        ~collision_integral();
+        virtual ~collision_integral() = default;
         
         int get_bin();
         int get_num_bins();

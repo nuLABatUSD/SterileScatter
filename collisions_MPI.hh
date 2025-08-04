@@ -17,9 +17,9 @@ class collisions{
         collisions(int, int, mixed_dummy_vars*);
         ~collisions();
         
-        void compute_R(double, double, freqs_ntT*);
-        void collision_integral(freqs_ntT*, bool, freqs_ntT*);
-}
+        void compute_R(double, double, freqs_ntT*, bool=false);
+        void C(freqs_ntT*, bool, freqs_ntT*);
+};
 
 
 #endif
