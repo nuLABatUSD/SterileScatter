@@ -94,12 +94,65 @@ void nu_nu_collision::populate_F(freqs* f, double Tcm, bool net){
     }
 }
 
-double interior_integral(double Tcm, int p2, int which_term){
+double J1(double p1, double p2, double p3){
+    return 16./15 * pow(p3,3) * (10 * pow(p1+p2,2) - 15 * (p1+p2) * p3 + 6 * pow(p3,2));  
+}
+
+double J2(double p1, double p2){
+    return 16./15 * pow(p2,3) * (10 * pow(p1,2) + 5 * p1*p2 + pow(p2,2));  
+}
+
+double J3(double p1, double p2, double p3){
+    return 16./15 * (pow(p1+p2,5) - 10 * pow(p1+p2,2) * pow(p3, 3) + 15 * (p1+p2) * pow(p3,4) - 6 * pow(p3,5));
+}
+
+double nu_nu_collision::J(double p1, double p2, double p3){
+    if(p2 < p1){
+        if(p3 < p2)
+            return J1(p1, p2, p3);
+        else if (p3 < p1)
+            return J2(p1, p2);
+        else if (p3 < p1 + p2)
+            return J3(p1, p2, p3);
+        else
+            return 0;
+    }
+    else{
+        if(p3 < p1)
+            return J1(p1, p2, p3);
+        else if (p3 < p2)
+            return J2(p2, p1);
+        else if (p3 < p1 + p2)
+            return J3(p1, p2, p3);
+        else
+            return 0;
+    }
+}
+
+double nu_nu_collision::interior_integral(double Tcm, int p2, int which_term){
     inner_vals[p2]->zeros();
     
+    for(int p3 = 0; p3 < inner_vals[p2]->get_length(); p3++)
+        inner_vals[p2]->set_value(i, J1(eps_value, outer_dummy_vars->get_value(p2), inner_dummy_vars->get_value(p3)) * F_values[which_term][p2][p3]);
     
     return inner_dummy_vars[p2]->integrate(inner_vals[p2]);
 }
 
+void nu_nu_collision::whole_integral(freqs* f, double Tcm, bool net, double* results){
+    if (eps_value == 0)
+        for(int j = 0; j < 6; j++)
+            results[j] = 0.;
+    else{
+        populate_F(f, Tcm, net);
+        
+        double coeff = pow*Tcm, 5) * pow(_GF_, 2) / (pow(2*_PI_, 3) * pow(eps_value,2 ));
+        
+        for(int j = 0; j < 6; j++){
+            for(int p2 = 0; p2 < N_bins; p2++)
+                outer_vals->set_value(p2, interior_integral(Tcm, p2, j));
+            results[j] = coeff * outer_dummy_vars->integrate(outer_vals);
+        }
+    }
+}
 
 

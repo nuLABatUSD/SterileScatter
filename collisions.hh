@@ -38,9 +38,15 @@ class nu_nu_collision : public collision_integral{
         
         void populate_F(freqs*, double, bool);
         double interior_integral(double, int, int);
-        void whole_integral(freqs*, bool, double*);
+        void whole_integral(freqs*, double, bool, double*);
+        
+        double J(double, double, double);
 
 
 };
+
+double J1(double, double, double);
+double J2(double, double);
+double J3(double, double, double);
 
 #endif
