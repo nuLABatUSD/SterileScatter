@@ -3,6 +3,7 @@
 
 #include "universe.hh"
 #include "dummy_dep_vars.hh"
+#include "mixed_dummy_vars.hh"
 
 const double sigma_delta_boxcar = 0.05;
 
@@ -18,10 +19,15 @@ class sterile : public particle{
         double rate[5];
         
         double E_low, E_high;
+        double energies[6];
         bool decay_on;
+        
+        double ms;// Added by Albert
     public:
         sterile(double, double);
         sterile(sterile*);
+        
+        double get_ms(); // Added by Albert
         
         double get_theta();
         
@@ -34,11 +40,14 @@ class sterile : public particle{
         
         void calc_rates();
         void calculate_min_max_energy();
+        void calculate_energies();
         
         double get_E_low();
         double get_E_high();
         
         gel_linspace_gl* new_eps_bins(double, double, int);
+        mixed_dummy_vars* new_eps_bins(double, double, double, int);
+        mixed_dummy_vars* new_eps_bins(double, double, double, double, int); // shift constructor
         
         double get_decay_type_one(double, double, double);
         double get_decay_type_two(double, double);

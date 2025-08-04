@@ -15,6 +15,7 @@ class dummy_vars{
         double* weights;
         
         double max_linspace;
+        
     public:
         dummy_vars();
         dummy_vars(int);
@@ -40,6 +41,7 @@ class dummy_vars{
         
         void print_all();
         void print_csv(ostream&);
+        
 };
 
 // gl_dummy_vars - sets up dummy variables for Gauss-Laguerre (integrating from 0 to inf) 
@@ -49,8 +51,7 @@ class gl_dummy_vars : public dummy_vars{
         gl_dummy_vars(int, double);
 };
 
-// gel_dummy_vars - sets up dummy vars for Gauss-Legendre (integrating from )
-// What is the use for Gauss-Legendre?? 
+// gel_dummy_vars - sets up dummy vars for Gauss-Legendre (integrating definite integral)
 class gel_dummy_vars : public dummy_vars{
     public:
         gel_dummy_vars(int, double, double);
