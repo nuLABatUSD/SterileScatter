@@ -37,6 +37,7 @@ class freqs_ntT : public dep_vars{
         void set_Temp(double);
         
         void print_eps_file(ostream&);
+        void print_eps_nus(ostream&);
         
         void set_f_value(int, int, double); // set_f_value(int bin, int type, double value)
         void set_neutrino_distribution(int, dep_vars*);

@@ -79,3 +79,45 @@ void collisions::compute_R(double Tcm, double T, freqs_ntT* output, bool print){
     
     delete[] out_vals;
 }
+
+
+void collisions::C(double Tcm, freqs_ntT* f, bool net, freqs_ntT* output){
+    output->zeros(); // initialize output as all zeros
+    
+    double* out_vals = new double[6 * eps->get_length()](); // zero initializes an array
+    // the () at the end of the statement initializes all the array values to be 0.0 instead of garbage values
+    double my_ans = 0.0;
+    int sender, tag;
+    MPI_Status status;
+    
+    double dummy_int[6]; // dummy integral
+    
+    // controller
+    if(myid == 0){
+        for(int i = 0; i < eps->get_length(); i++){
+            MPI_Recv(dummy_int, 6, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            sender = status.MPI_SOURCE;
+            tag = status.MPI_TAG;
+            
+            for(int j = 0; j < 6; j++){
+                out_vals[j*eps->get_length() + tag] += dummy_int[j];
+            }
+            
+            cout << "Received: " << tag << endl;
+        }
+    }
+    // workers
+    else{
+        for(int j = 0; j < num_integrators; j++){
+            integrators[j]->whole_integral(f, Tcm, net, output); // difference from collisions::compute_R()
+            MPI_Send(dummy_int, 6, MPI_DOUBLE, 0, integrators[j]->get_bin(), MPI_COMM_WORLD);
+        }
+    }
+    
+    MPI_Bcast(out_vals, 6 * eps->get_length(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    
+    for(int i = 0; i < 6 * eps->get_length(); i++)
+        output->set_value(i, out_vals[i]);
+    
+    delete[] out_vals;
+}

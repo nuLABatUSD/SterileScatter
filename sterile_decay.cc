@@ -171,6 +171,9 @@ double sterile_decay::em_entropy_density(){
 void sterile_decay::print_eps_file(ostream& os)
 {   y_values->print_eps_file(os);  }
 
+void sterile_decay::print_eps_nus(ostream& os)
+{   y_values->print_eps_nus(os);    }
+
 double sterile_decay::get_Neff(){
     double Neff = 4./7. * pow(11./4., 4./3.) * 30. / (_PI_ * _PI_);
     Neff /= pow(y_values->get_Temp(), 4);

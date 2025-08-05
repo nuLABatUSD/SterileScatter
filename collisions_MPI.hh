@@ -18,7 +18,7 @@ class collisions{
         ~collisions();
         
         void compute_R(double, double, freqs_ntT*, bool=false);
-        void C(freqs_ntT*, bool, freqs_ntT*);
+        void C(double, freqs_ntT*, bool, freqs_ntT*);
 };
 
 

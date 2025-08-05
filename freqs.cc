@@ -83,6 +83,18 @@ void freqs_ntT::set_Temp(double T0)
 void freqs_ntT::print_eps_file(ostream& os)
 {   eps->print_csv(os);  
     os << std::endl; }
+    
+void freqs_ntT::print_eps_nus(ostream& os)
+{   eps->print_csv(os);
+    os << std::endl;
+    // print nu's
+    for(int j = 0; j < 6; j++){
+        for(int i = 0; i < eps->get_length()-1; i++){
+            os << get_f_value(i,j) << ",";
+        }
+        os << get_f_value(eps->get_length()-1,j) << std::endl;
+    }
+}
 
 double freqs_ntT::neutrino_energy(double a)
 {  

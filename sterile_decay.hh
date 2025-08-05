@@ -31,6 +31,7 @@ class sterile_decay : public ODESolve<freqs_ntT>{
         double em_entropy_density();
         
         void print_eps_file(ostream&);
+        void print_eps_nus(ostream&);
         
         double get_Neff();
         

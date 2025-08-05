@@ -8,6 +8,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <chrono>
 
 using std::cout;
@@ -38,9 +39,15 @@ int main(int argc, char* argv[])
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);
     
-    if(myid == 0)
+    if(myid == 0){
         cout << "Time elapsed: " << duration.count() / 1000. << " seconds" << endl;
-
+        
+        // print R values to a file
+        ofstream MyFile("outputs/R_values.csv");
+        R_values->print_eps_nus(MyFile);
+        MyFile.close();
+    }
+    
     delete R_values;
     delete C_MPI;
         
