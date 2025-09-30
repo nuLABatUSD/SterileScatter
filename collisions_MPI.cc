@@ -109,7 +109,7 @@ void collisions::C(double Tcm, freqs_ntT* f, bool net, freqs_ntT* output){
     // workers
     else{
         for(int j = 0; j < num_integrators; j++){
-            integrators[j]->whole_integral(f, Tcm, net, output); // difference from collisions::compute_R()
+            integrators[j]->whole_integral(f, Tcm, net, dummy_int); // different from collisions::compute_R()
             MPI_Send(dummy_int, 6, MPI_DOUBLE, 0, integrators[j]->get_bin(), MPI_COMM_WORLD);
         }
     }
